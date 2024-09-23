@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "IMG_0917",
+    "texture": "260c4812-e28a-4ea2-adf4-dc12502d3d88",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      1290,
+      2796
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      1290,
+      2796
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

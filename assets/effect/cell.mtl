@@ -1,0 +1,17 @@
+{
+  "__type__": "cc.Material",
+  "_name": "cell",
+  "_objFlags": 0,
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "2517a5d7-52dc-4e44-96f8-218f6fcb6b96"
+  },
+  "_techniqueIndex": 0,
+  "_techniqueData": {
+    "0": {
+      "defines": {
+        "USE_TEXTURE": true
+      }
+    }
+  }
+}

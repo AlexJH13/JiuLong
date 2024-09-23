@@ -1,0 +1,161 @@
+// Copyright (c) 2017-2018 Xiamen Yaji Software Co., Ltd.
+
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: vs
+      frag: fs
+      blendState:
+        targets:
+        - blend: true
+      rasterizerState:
+        cullMode: none
+      properties:
+        texture: { value: white }
+        alphaThreshold: { value: 0.5 }
+        rect: {value: [0.0, 1.0, 0.0, 1.0]}
+}%
+
+
+CCProgram vs %{
+  precision highp float;
+
+  #include <cc-global>
+  #include <cc-local>
+
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 a_uv0;
+  out vec2 v_uv0;
+  #endif
+
+  void main () {
+    vec4 pos = vec4(a_position, 1);
+
+    #if CC_USE_MODEL
+    pos = cc_matViewProj * cc_matWorld * pos;
+    #else
+    pos = cc_matViewProj * pos;
+    #endif
+
+    #if USE_TEXTURE
+    v_uv0 = a_uv0;
+    #endif
+
+    v_color = a_color;
+
+    gl_Position = pos;
+  }
+}%
+
+
+CCProgram fs %{
+  precision highp float;
+
+  #include <alpha-test>
+  #include <texture>
+
+  in vec4 v_color;
+
+  #if USE_TEXTURE
+  in vec2 v_uv0;
+  uniform sampler2D texture;
+  #endif
+
+  uniform Constant {
+    vec4 rect;
+  };
+
+  void main () {
+    vec4 o = vec4(1, 1, 1, 1);
+
+    #if USE_TEXTURE
+      CCTexture(texture, v_uv0, o);
+    #endif
+
+    o *= v_color;
+
+    ALPHA_TEST(o);
+
+    float fullWidth = 117.0;
+    float fullHeight = 117.0;
+
+    float fullR = 10.0;
+    float r = fullR / fullWidth;
+
+    float uvL = rect.y - rect.x;
+    float uvR = uvL * r;
+
+    if(v_uv0.x >= rect.x  && v_uv0.x <= rect.x + uvR && v_uv0.y >= rect.z && v_uv0.y <= rect.z + uvR) { //左上
+      vec2 center = vec2(rect.x + uvR, rect.z + uvR);
+      if (distance(center, v_uv0) >= uvR) {
+        o.a = 0.0;
+      }
+    } 
+
+    if(v_uv0.x >= rect.y - uvR  && v_uv0.x <= rect.y && v_uv0.y >= rect.z && v_uv0.y <= rect.z + uvR) { //右上
+      vec2 center = vec2(rect.y - uvR, rect.z + uvR);
+      if (distance(center, v_uv0) >= uvR) {
+        o.a = 0.0;
+      }
+    } 
+
+    if(v_uv0.x >= rect.x  && v_uv0.x <= rect.x + uvR && v_uv0.y >= rect.w - uvR && v_uv0.y <= rect.w) { //左下
+      vec2 center = vec2(rect.x + uvR, rect.w - uvR );
+      if (distance(center, v_uv0) >= uvR) {
+        o.a = 0.0;
+      }
+    } 
+
+    if(v_uv0.x >= rect.y - uvR  && v_uv0.x <= rect.y && v_uv0.y >= rect.w - uvR && v_uv0.y <= rect.w) {//右下
+      vec2 center = vec2(rect.y - uvR, rect.w - uvR);
+      if (distance(center, v_uv0) >= uvR) {
+        o.a = 0.0;
+      }
+    } 
+
+    float totalShadow = 8.0;
+    float s = totalShadow / fullWidth;
+
+    float uvS = uvL * s;
+
+    float sR = uvR * 1.8;
+
+
+    if(v_uv0.x >= rect.x  && v_uv0.x <= rect.x + sR - sR * 0.3 && v_uv0.y >= rect.w - uvS  - sR && v_uv0.y <= rect.w - uvS) { //左下
+      vec2 center = vec2(rect.x + sR - sR * 0.3, rect.w - sR - uvS );
+      if (distance(center, v_uv0) >= sR) {
+        o.a = o.a * 0.8;
+      }
+    } 
+
+
+     if(v_uv0.x >= rect.y - sR + sR * 0.3  && v_uv0.x <= rect.y && v_uv0.y >= rect.w - uvS  - sR && v_uv0.y <= rect.w - uvS) {//右下
+      vec2 center = vec2(rect.y - sR + sR * 0.3,  rect.w - sR - uvS );
+      if (distance(center, v_uv0) >= sR) {
+        o.a = o.a * 0.8;
+      }
+    } 
+
+    if(v_uv0.y <= rect.w  && v_uv0.y >= rect.w - uvS) {
+      o.a = o.a * 0.8;
+    }
+
+    // if(v_uv0.x == rect.x || v_uv0.x == rect.y || v_uv0.y == rect.z || v_uv0.y == rect.w) {
+    //   o.r = 1.0;
+    //   o.g = 1.0;
+    //   o.b = 1.0;
+    //   o.a = 0.0;
+    // }
+
+
+    #if USE_BGRA
+      gl_FragColor = o.bgra;
+    #else
+      gl_FragColor = o.rgba;
+    #endif
+  }
+}%
