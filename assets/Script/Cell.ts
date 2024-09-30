@@ -15,6 +15,8 @@ export default class Cell extends cc.Component {
 
     private _value: number = 0;
 
+    private _matrix: cc.Vec2 = null;
+
     private config: {[key: number]: cc.Color} = {
         2: cc.color().fromHEX('#ff7778'),
         4: cc.color().fromHEX('#a976f3'),
@@ -31,6 +33,16 @@ export default class Cell extends cc.Component {
     start () {
 
     }
+
+    public set matrix(v: cc.Vec2) {
+        this._matrix = v;
+    }
+
+    
+    public get matrix() : cc.Vec2 {
+        return this._matrix;
+    }
+    
 
     
     public set value(v : number) {

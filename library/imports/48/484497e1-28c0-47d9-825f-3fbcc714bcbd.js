@@ -36,6 +36,7 @@ var Cell = /** @class */ (function (_super) {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.text = null;
         _this._value = 0;
+        _this._matrix = null;
         _this.config = {
             2: cc.color().fromHEX('#ff7778'),
             4: cc.color().fromHEX('#a976f3'),
@@ -52,6 +53,16 @@ var Cell = /** @class */ (function (_super) {
     // onLoad () {}
     Cell.prototype.start = function () {
     };
+    Object.defineProperty(Cell.prototype, "matrix", {
+        get: function () {
+            return this._matrix;
+        },
+        set: function (v) {
+            this._matrix = v;
+        },
+        enumerable: false,
+        configurable: true
+    });
     Object.defineProperty(Cell.prototype, "value", {
         get: function () {
             return this._value;

@@ -38,21 +38,32 @@ var Game = /** @class */ (function (_super) {
         _this.cellPrefab = null;
         _this.mainNode = null;
         // 5*7 的二维数组
-        _this.matrix = Array.from({ length: 5 }, function () { return Array(7).fill(0); });
+        _this.matrix = [];
         return _this;
         // update (dt) {}
     }
-    ;
     // LIFE-CYCLE CALLBACKS:
-    // onLoad () {}
+    Game.prototype.onLoad = function () {
+        this.node.on(cc.Node.EventType.TOUCH_START, this.touchStart.bind(this), this);
+        this.node.on(cc.Node.EventType.TOUCH_MOVE, this.touchMoved.bind(this), this);
+        this.node.on(cc.Node.EventType.TOUCH_END, this.touchEnded.bind(this), this);
+        this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.touchEnded.bind(this), this);
+    };
     Game.prototype.start = function () {
         this.createGame();
     };
     Game.prototype.createGame = function () {
-        for (var index = 0; index < 35; index++) {
-            var node = cc.instantiate(this.cellPrefab);
-            node.getComponent(Cell_1.default).value = Math.pow(2, this.getRandomIntInclusive(1, 7));
-            node.parent = this.mainNode;
+        for (var row = 0; row < 7; row++) {
+            var rowArray = [];
+            for (var clo = 0; clo < 5; clo++) {
+                var node = cc.instantiate(this.cellPrefab);
+                var cell = node.getComponent(Cell_1.default);
+                cell.matrix = cc.v2(row, clo);
+                cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
+                node.parent = this.mainNode;
+                rowArray.push(node);
+            }
+            this.matrix.push(rowArray);
         }
     };
     Game.prototype.getRandomIntInclusive = function (min, max) {
@@ -60,6 +71,20 @@ var Game = /** @class */ (function (_super) {
         min = Math.ceil(min);
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min + 1)) + min; // 包含 min 和 max
+    };
+    Game.prototype.touchStart = function (event) {
+        for (var row = 0; row < 7; row++) {
+            for (var clo = 0; clo < 5; clo++) {
+                if (this.matrix[row][clo].getBoundingBoxToWorld().contains(event.getLocation())) {
+                    cc.log(row, clo);
+                    return;
+                }
+            }
+        }
+    };
+    Game.prototype.touchMoved = function (event) {
+    };
+    Game.prototype.touchEnded = function (event) {
     };
     __decorate([
         property(cc.Prefab)
