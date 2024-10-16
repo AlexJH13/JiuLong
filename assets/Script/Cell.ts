@@ -17,6 +17,8 @@ export default class Cell extends cc.Component {
 
     private _matrix: cc.Vec2 = null;
 
+    private _touched: boolean = false;
+
     private config: {[key: number]: cc.Color} = {
         2: cc.color().fromHEX('#ff7778'),
         4: cc.color().fromHEX('#a976f3'),
@@ -32,6 +34,14 @@ export default class Cell extends cc.Component {
 
     start () {
 
+    }
+
+    public set touched(flag: boolean) {
+        this._touched = flag;
+    }
+
+    public get touched(): boolean {
+        return this._touched;
     }
 
     public set matrix(v: cc.Vec2) {

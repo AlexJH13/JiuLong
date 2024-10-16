@@ -21,8 +21,14 @@ export default class Game extends cc.Component {
     // 5*7 的二维数组
     matrix: cc.Node[][]  = [];
 
-    touchStartNode: cc.Node = null;
+
     touchSum: number = 0;
+    showSum: number = 0;
+
+    touchEnable: boolean = false;
+    lastTouchCell: Cell = null;
+
+    touchNodeList: cc.Node[] = [];
     
 
     // LIFE-CYCLE CALLBACKS:
@@ -60,12 +66,22 @@ export default class Game extends cc.Component {
         return Math.floor(Math.random() * (max - min + 1)) + min; // 包含 min 和 max
     }
 
+    private addTouchCell(cell: Cell): void {
+        cell.node.scale = 1.05;
+        this.touchNodeList.push(cell.node);
+        cell.getComponent(Cell).touched = true;
+        this.touchSum += cell.getComponent(Cell).value;
+        this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+        this.lastTouchCell = cell;
+    }
+
     private touchStart(event: cc.Event.EventTouch): void {
         for (let row = 0; row < 7; row++) {
             for (let clo = 0; clo < 5; clo++) {
-                if(this.matrix[row][clo].getBoundingBoxToWorld().contains(event.getLocation())) {   
-                    this.touchStartNode = this.matrix[row][clo];
-                    this.touchSum = 0;
+                let cell = this.matrix[row][clo];
+                if(cell.getBoundingBoxToWorld().contains(event.getLocation())) {
+                    this.touchEnable = true;
+                    this.addTouchCell(cell.getComponent(Cell));
                     return;
                 }
             }
@@ -73,13 +89,33 @@ export default class Game extends cc.Component {
     }
 
     private touchMoved(event: cc.Event.EventTouch): void {
-        if (cc.isValid(this.touchStartNode)) {
+        if (this.touchEnable) {
+            if (this.lastTouchCell) {
+                for (let row = this.lastTouchCell.matrix.x - 1; row <= this.lastTouchCell.matrix.x + 1; row++) {
+                    for (let clo = this.lastTouchCell.matrix.y -1; clo <= this.lastTouchCell.matrix.y + 1; clo++) {
+                        if (row < 0 || row > 6 || clo < 0 || clo > 4) {
+                            continue;
+                        }
+                        let cell = this.matrix[row][clo];
+                        if (cell.getComponent(Cell).touched || cell.getComponent(Cell).value > this.showSum) {
+                            continue;
+                        }
+                        if(cell.getBoundingBoxToWorld().contains(event.getLocation())) { 
+                            this.addTouchCell(cell.getComponent(Cell));
+                            return;
+                        }
+                    }
+                }
+            }
             
         }
     }
 
     private touchEnded(event: cc.Event.EventTouch): void {
-
+        this.touchSum = 0;
+        this.showSum = 0;
+        this.touchEnable = false;
+        this.touchNodeList = [];
     }
 
     // update (dt) {}

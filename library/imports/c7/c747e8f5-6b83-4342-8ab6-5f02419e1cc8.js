@@ -39,6 +39,11 @@ var Game = /** @class */ (function (_super) {
         _this.mainNode = null;
         // 5*7 的二维数组
         _this.matrix = [];
+        _this.touchSum = 0;
+        _this.showSum = 0;
+        _this.touchEnable = false;
+        _this.lastTouchCell = null;
+        _this.touchNodeList = [];
         return _this;
         // update (dt) {}
     }
@@ -72,19 +77,52 @@ var Game = /** @class */ (function (_super) {
         max = Math.floor(max);
         return Math.floor(Math.random() * (max - min + 1)) + min; // 包含 min 和 max
     };
+    Game.prototype.addTouchCell = function (cell) {
+        cell.node.scale = 1.05;
+        this.touchNodeList.push(cell.node);
+        cell.getComponent(Cell_1.default).touched = true;
+        this.touchSum += cell.getComponent(Cell_1.default).value;
+        this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+        this.lastTouchCell = cell;
+    };
     Game.prototype.touchStart = function (event) {
         for (var row = 0; row < 7; row++) {
             for (var clo = 0; clo < 5; clo++) {
-                if (this.matrix[row][clo].getBoundingBoxToWorld().contains(event.getLocation())) {
-                    cc.log(row, clo);
+                var cell = this.matrix[row][clo];
+                if (cell.getBoundingBoxToWorld().contains(event.getLocation())) {
+                    this.touchEnable = true;
+                    this.addTouchCell(cell.getComponent(Cell_1.default));
                     return;
                 }
             }
         }
     };
     Game.prototype.touchMoved = function (event) {
+        if (this.touchEnable) {
+            if (this.lastTouchCell) {
+                for (var row = this.lastTouchCell.matrix.x - 1; row <= this.lastTouchCell.matrix.x + 1; row++) {
+                    for (var clo = this.lastTouchCell.matrix.y - 1; clo <= this.lastTouchCell.matrix.y + 1; clo++) {
+                        if (row < 0 || row > 6 || clo < 0 || clo > 4) {
+                            continue;
+                        }
+                        var cell = this.matrix[row][clo];
+                        if (cell.getComponent(Cell_1.default).touched || cell.getComponent(Cell_1.default).value > this.showSum) {
+                            continue;
+                        }
+                        if (cell.getBoundingBoxToWorld().contains(event.getLocation())) {
+                            this.addTouchCell(cell.getComponent(Cell_1.default));
+                            return;
+                        }
+                    }
+                }
+            }
+        }
     };
     Game.prototype.touchEnded = function (event) {
+        this.touchSum = 0;
+        this.showSum = 0;
+        this.touchEnable = false;
+        this.touchNodeList = [];
     };
     __decorate([
         property(cc.Prefab)
