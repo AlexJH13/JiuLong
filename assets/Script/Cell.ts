@@ -15,7 +15,7 @@ export default class Cell extends cc.Component {
     @property(cc.Label)
     text: cc.Label = null;
 
-    private _id: string = null;
+    private _cellId: string = null;
 
     private _value: number = 0;
 
@@ -24,6 +24,8 @@ export default class Cell extends cc.Component {
     private _touched: boolean = false;
 
     private _preTouchCell: Cell = null;
+
+    private _graphics: cc.Graphics = null;
 
     private config: {[key: number]: cc.Color} = {
         2: cc.color().fromHEX('#ff7778'),
@@ -62,12 +64,24 @@ export default class Cell extends cc.Component {
         this.node.setPosition(pos);
     }
 
-    public set id(id: string) {
-        this._id = id;
+    public set graphics(graphics: cc.Graphics) {
+        if (graphics) {
+            this._graphics = graphics;
+        } else if(this._graphics){
+            this._graphics.clear();
+        }
     }
 
-    public get id(): string {
-        return this._id;
+    public get graphics(): cc.Graphics {
+        return this._graphics;
+    }
+
+    public set cellId(id: string) {
+        this._cellId = id;
+    }
+
+    public get cellId(): string {
+        return this._cellId;
     }
 
     public set preTouchCell(cell: Cell) {

@@ -10,6 +10,8 @@ var Config;
     Config.MAX_ROW = 7;
     Config.MAX_COL = 5;
     Config.CELL_SPACING = 13;
+    Config.LINE_COLOR = new cc.Color().fromHEX('#ffbd31');
+    Config.LINE_WIDTH = 10;
 })(Config = exports.Config || (exports.Config = {}));
 
 cc._RF.pop();

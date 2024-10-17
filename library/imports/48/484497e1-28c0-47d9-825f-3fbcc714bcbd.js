@@ -36,11 +36,12 @@ var Cell = /** @class */ (function (_super) {
     function Cell() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.text = null;
-        _this._id = null;
+        _this._cellId = null;
         _this._value = 0;
         _this._matrix = null;
         _this._touched = false;
         _this._preTouchCell = null;
+        _this._graphics = null;
         _this.config = {
             2: cc.color().fromHEX('#ff7778'),
             4: cc.color().fromHEX('#a976f3'),
@@ -82,12 +83,27 @@ var Cell = /** @class */ (function (_super) {
         var pos = this.getPosFromMatrix();
         this.node.setPosition(pos);
     };
-    Object.defineProperty(Cell.prototype, "id", {
+    Object.defineProperty(Cell.prototype, "graphics", {
         get: function () {
-            return this._id;
+            return this._graphics;
+        },
+        set: function (graphics) {
+            if (graphics) {
+                this._graphics = graphics;
+            }
+            else if (this._graphics) {
+                this._graphics.clear();
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Cell.prototype, "cellId", {
+        get: function () {
+            return this._cellId;
         },
         set: function (id) {
-            this._id = id;
+            this._cellId = id;
         },
         enumerable: false,
         configurable: true

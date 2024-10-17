@@ -39,6 +39,7 @@ var Game = /** @class */ (function (_super) {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.cellPrefab = null;
         _this.mainNode = null;
+        _this.graphicsNode = null;
         // 5*7 的二维数组
         _this.matrix = [];
         _this.touchSum = 0;
@@ -59,14 +60,25 @@ var Game = /** @class */ (function (_super) {
     Game.prototype.start = function () {
         this.createGame();
     };
+    Game.prototype.drawLine = function (pos1, pos2) {
+        var node = new cc.Node();
+        var graphics = node.addComponent(cc.Graphics);
+        graphics.lineWidth = Config_1.Config.LINE_WIDTH;
+        graphics.strokeColor = Config_1.Config.LINE_COLOR;
+        graphics.moveTo(pos1.x, pos1.y);
+        graphics.lineTo(pos2.x, pos2.y);
+        graphics.stroke();
+        node.parent = this.graphicsNode;
+        return graphics;
+    };
     Game.prototype.createGame = function () {
         for (var row = 0; row < Config_1.Config.MAX_ROW; row++) {
             var rowArray = [];
-            for (var clo = 0; clo < Config_1.Config.MAX_COL; clo++) {
+            for (var col = 0; col < Config_1.Config.MAX_COL; col++) {
                 var node = cc.instantiate(this.cellPrefab);
                 var cell = node.getComponent(Cell_1.default);
-                cell.id = XYUtils_1.XY.generateId();
-                cell.matrix = cc.v2(clo, row);
+                cell.cellId = XYUtils_1.XY.generateId();
+                cell.matrix = cc.v2(col, row);
                 cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
                 node.parent = this.mainNode;
                 cell.updatePos();
@@ -88,6 +100,7 @@ var Game = /** @class */ (function (_super) {
         this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
         if (cc.isValid(this.lastTouchCell)) {
             cell.preTouchCell = this.lastTouchCell;
+            cell.graphics = this.drawLine(cell.node.getPosition(), this.lastTouchCell.node.getPosition());
         }
         this.lastTouchCell = cell;
     };
@@ -97,6 +110,7 @@ var Game = /** @class */ (function (_super) {
         if (cc.isValid(cell.preTouchCell)) {
             this.touchNodeList.pop();
             cell.touched = false;
+            cell.graphics = null;
             this.lastTouchCell = cell.preTouchCell;
             cell.preTouchCell = null;
             this.touchSum -= cell.value;
@@ -105,8 +119,8 @@ var Game = /** @class */ (function (_super) {
     };
     Game.prototype.touchStart = function (event) {
         for (var row = 0; row < Config_1.Config.MAX_ROW; row++) {
-            for (var clo = 0; clo < Config_1.Config.MAX_COL; clo++) {
-                var cell = this.matrix[row][clo];
+            for (var col = 0; col < Config_1.Config.MAX_COL; col++) {
+                var cell = this.matrix[row][col];
                 if (cell.getBoundingBoxToWorld().contains(event.getLocation())) {
                     this.touchEnable = true;
                     this.addTouchCell(cell.getComponent(Cell_1.default));
@@ -118,16 +132,16 @@ var Game = /** @class */ (function (_super) {
     Game.prototype.touchMoved = function (event) {
         if (this.touchEnable) {
             if (cc.isValid(this.lastTouchCell)) {
-                for (var row = this.lastTouchCell.matrix.x - 1; row <= this.lastTouchCell.matrix.x + 1; row++) {
-                    for (var clo = this.lastTouchCell.matrix.y - 1; clo <= this.lastTouchCell.matrix.y + 1; clo++) {
-                        if (row < 0 || row >= Config_1.Config.MAX_ROW || clo < 0 || clo >= Config_1.Config.MAX_COL) {
+                for (var row = this.lastTouchCell.matrix.y - 1; row <= this.lastTouchCell.matrix.y + 1; row++) {
+                    for (var col = this.lastTouchCell.matrix.x - 1; col <= this.lastTouchCell.matrix.x + 1; col++) {
+                        if (row < 0 || row >= Config_1.Config.MAX_ROW || col < 0 || col >= Config_1.Config.MAX_COL) {
                             continue;
                         }
-                        var cellNode = this.matrix[row][clo];
+                        var cellNode = this.matrix[row][col];
                         var cell = cellNode.getComponent(Cell_1.default);
                         if (cellNode.getBoundingBoxToWorld().contains(event.getLocation())) {
                             if (cc.isValid(this.lastTouchCell.preTouchCell)) {
-                                if (this.lastTouchCell.preTouchCell.id === cell.id) {
+                                if (this.lastTouchCell.preTouchCell.cellId === cell.cellId) {
                                     this.removeTouchCell();
                                     return;
                                 }
@@ -144,6 +158,10 @@ var Game = /** @class */ (function (_super) {
         }
     };
     Game.prototype.touchEnded = function (event) {
+        if (this.touchNodeList.length === 1) {
+            this.lastTouchCell.touched = false;
+            this.lastTouchCell.preTouchCell = null;
+        }
         this.touchSum = 0;
         this.showSum = 0;
         this.touchEnable = false;
@@ -156,6 +174,9 @@ var Game = /** @class */ (function (_super) {
     __decorate([
         property(cc.Node)
     ], Game.prototype, "mainNode", void 0);
+    __decorate([
+        property(cc.Node)
+    ], Game.prototype, "graphicsNode", void 0);
     Game = __decorate([
         ccclass
     ], Game);

@@ -1,0 +1,28 @@
+{
+  "__type__": "cc.SpriteFrame",
+  "content": {
+    "name": "IMG_0976",
+    "texture": "a0bada61-f50f-4a20-b3ff-bee0b17ac854",
+    "atlas": "",
+    "rect": [
+      0,
+      0,
+      591,
+      1280
+    ],
+    "offset": [
+      0,
+      0
+    ],
+    "originalSize": [
+      591,
+      1280
+    ],
+    "capInsets": [
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

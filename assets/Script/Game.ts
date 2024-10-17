@@ -20,6 +20,9 @@ export default class Game extends cc.Component {
     @property(cc.Node)
     mainNode: cc.Node = null;
 
+    @property(cc.Node)
+    graphicsNode: cc.Node = null;
+
     // 5*7 的二维数组
     matrix: cc.Node[][]  = [];
 
@@ -46,14 +49,26 @@ export default class Game extends cc.Component {
         this.createGame();
     }
 
+    private drawLine(pos1: cc.Vec2, pos2: cc.Vec2): cc.Graphics {
+        let node = new cc.Node();
+        let graphics = node.addComponent(cc.Graphics);
+        graphics.lineWidth = Config.LINE_WIDTH;
+        graphics.strokeColor = Config.LINE_COLOR;
+        graphics.moveTo(pos1.x, pos1.y);
+        graphics.lineTo(pos2.x, pos2.y);
+        graphics.stroke();
+        node.parent = this.graphicsNode;
+        return graphics;
+    }
+
     private createGame(): void {
         for (let row = 0; row < Config.MAX_ROW; row++) {
             let rowArray = []
-            for (let clo = 0; clo < Config.MAX_COL; clo++) {
+            for (let col = 0; col < Config.MAX_COL; col++) {
                 let node = cc.instantiate(this.cellPrefab);
                 let cell = node.getComponent(Cell);
-                cell.id = XY.generateId();
-                cell.matrix = cc.v2(clo, row);
+                cell.cellId = XY.generateId();
+                cell.matrix = cc.v2(col, row);
                 cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
                 node.parent = this.mainNode;
                 cell.updatePos();
@@ -77,6 +92,7 @@ export default class Game extends cc.Component {
         this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
         if (cc.isValid(this.lastTouchCell)) {
             cell.preTouchCell = this.lastTouchCell;
+            cell.graphics = this.drawLine(cell.node.getPosition(), this.lastTouchCell.node.getPosition());
         }
         this.lastTouchCell = cell;
     }
@@ -87,6 +103,7 @@ export default class Game extends cc.Component {
         if (cc.isValid(cell.preTouchCell)) {
             this.touchNodeList.pop();
             cell.touched = false;
+            cell.graphics = null;
             
             this.lastTouchCell = cell.preTouchCell;
             cell.preTouchCell = null;
@@ -99,8 +116,8 @@ export default class Game extends cc.Component {
 
     private touchStart(event: cc.Event.EventTouch): void {
         for (let row = 0; row < Config.MAX_ROW; row++) {
-            for (let clo = 0; clo < Config.MAX_COL; clo++) {
-                let cell = this.matrix[row][clo];
+            for (let col = 0; col < Config.MAX_COL; col++) {
+                let cell = this.matrix[row][col];
                 if(cell.getBoundingBoxToWorld().contains(event.getLocation())) {
                     this.touchEnable = true;
                     this.addTouchCell(cell.getComponent(Cell));
@@ -113,17 +130,16 @@ export default class Game extends cc.Component {
     private touchMoved(event: cc.Event.EventTouch): void {
         if (this.touchEnable) {
             if (cc.isValid(this.lastTouchCell)) {
-                for (let row = this.lastTouchCell.matrix.x - 1; row <= this.lastTouchCell.matrix.x + 1; row++) {
-                    for (let clo = this.lastTouchCell.matrix.y -1; clo <= this.lastTouchCell.matrix.y + 1; clo++) {
-                        if (row < 0 || row >= Config.MAX_ROW || clo < 0 || clo >= Config.MAX_COL) {
+                for (let row = this.lastTouchCell.matrix.y - 1; row <= this.lastTouchCell.matrix.y + 1; row++) {
+                    for (let col = this.lastTouchCell.matrix.x -1; col <= this.lastTouchCell.matrix.x + 1; col++) {
+                        if (row < 0 || row >= Config.MAX_ROW || col < 0 || col >= Config.MAX_COL) {
                             continue;
                         }
-                        let cellNode = this.matrix[row][clo];
+                        let cellNode = this.matrix[row][col];
                         let cell = cellNode.getComponent(Cell);
-
-                        if(cellNode.getBoundingBoxToWorld().contains(event.getLocation())) { 
+                        if(cellNode.getBoundingBoxToWorld().contains(event.getLocation())) {
                             if (cc.isValid(this.lastTouchCell.preTouchCell)) {
-                                if (this.lastTouchCell.preTouchCell.id === cell.id) {
+                                if (this.lastTouchCell.preTouchCell.cellId === cell.cellId) {
                                     this.removeTouchCell();
                                     return;
                                 }
@@ -139,11 +155,14 @@ export default class Game extends cc.Component {
                     }
                 }
             }
-            
         }
     }
 
     private touchEnded(event: cc.Event.EventTouch): void {
+        if (this.touchNodeList.length === 1) {
+            this.lastTouchCell.touched = false;
+            this.lastTouchCell.preTouchCell = null;
+        }
         this.touchSum = 0;
         this.showSum = 0;
         this.touchEnable = false;
