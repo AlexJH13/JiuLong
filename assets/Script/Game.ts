@@ -7,6 +7,7 @@
 
 import { XY } from "../XYUtils/XYUtils";
 import Cell from "./Cell";
+import { Config } from "./Config";
 
 const {ccclass, property} = cc._decorator;
 
@@ -30,7 +31,7 @@ export default class Game extends cc.Component {
     lastTouchCell: Cell = null;
 
     touchNodeList: cc.Node[] = [];
-    
+
 
     // LIFE-CYCLE CALLBACKS:
 
@@ -46,15 +47,16 @@ export default class Game extends cc.Component {
     }
 
     private createGame(): void {
-        for (let row = 0; row < 7; row++) {
+        for (let row = 0; row < Config.MAX_ROW; row++) {
             let rowArray = []
-            for (let clo = 0; clo < 5; clo++) {
+            for (let clo = 0; clo < Config.MAX_COL; clo++) {
                 let node = cc.instantiate(this.cellPrefab);
                 let cell = node.getComponent(Cell);
                 cell.id = XY.generateId();
-                cell.matrix = cc.v2(row, clo);
+                cell.matrix = cc.v2(clo, row);
                 cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
                 node.parent = this.mainNode;
+                cell.updatePos();
                 rowArray.push(node);
             }
             this.matrix.push(rowArray);
@@ -96,8 +98,8 @@ export default class Game extends cc.Component {
     }
 
     private touchStart(event: cc.Event.EventTouch): void {
-        for (let row = 0; row < 7; row++) {
-            for (let clo = 0; clo < 5; clo++) {
+        for (let row = 0; row < Config.MAX_ROW; row++) {
+            for (let clo = 0; clo < Config.MAX_COL; clo++) {
                 let cell = this.matrix[row][clo];
                 if(cell.getBoundingBoxToWorld().contains(event.getLocation())) {
                     this.touchEnable = true;
@@ -113,7 +115,7 @@ export default class Game extends cc.Component {
             if (cc.isValid(this.lastTouchCell)) {
                 for (let row = this.lastTouchCell.matrix.x - 1; row <= this.lastTouchCell.matrix.x + 1; row++) {
                     for (let clo = this.lastTouchCell.matrix.y -1; clo <= this.lastTouchCell.matrix.y + 1; clo++) {
-                        if (row < 0 || row > 6 || clo < 0 || clo > 4) {
+                        if (row < 0 || row >= Config.MAX_ROW || clo < 0 || clo >= Config.MAX_COL) {
                             continue;
                         }
                         let cellNode = this.matrix[row][clo];

@@ -29,6 +29,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var Config_1 = require("./Config");
 var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
 var Cell = /** @class */ (function (_super) {
     __extends(Cell, _super);
@@ -76,6 +77,11 @@ var Cell = /** @class */ (function (_super) {
         enumerable: false,
         configurable: true
     });
+    Cell.prototype.updatePos = function (withMove) {
+        if (withMove === void 0) { withMove = false; }
+        var pos = this.getPosFromMatrix();
+        this.node.setPosition(pos);
+    };
     Object.defineProperty(Cell.prototype, "id", {
         get: function () {
             return this._id;
@@ -120,6 +126,29 @@ var Cell = /** @class */ (function (_super) {
         enumerable: false,
         configurable: true
     });
+    Cell.prototype.getPosFromMatrix = function () {
+        var size = this.node.getContentSize();
+        var pos = cc.Vec2.ZERO;
+        pos.x = this.calculateFromMatrix(this._matrix.x, Config_1.Config.MAX_COL, Config_1.Config.CELL_SPACING, size.width);
+        pos.y = this.calculateFromMatrix(this._matrix.y, Config_1.Config.MAX_ROW, Config_1.Config.CELL_SPACING, size.height);
+        return pos;
+    };
+    Cell.prototype.calculateFromMatrix = function (x, max, spacing, width) {
+        var xr = max % 2;
+        var xq = Math.floor(max / 2);
+        if (xr != 0) {
+            // 奇数，中心点就是xq;
+            var deltaX = x - xq;
+            return deltaX * (spacing + width);
+        }
+        else {
+            //偶数，xq 是中心偏右的那个元素
+            var centerX = xq - 0.5;
+            var deltaX = x > centerX ? Math.floor(x - centerX) : Math.ceil(x - centerX);
+            var p = x > centerX ? 1 : -1;
+            return (0.5 * width + spacing / 2) * p + deltaX * (spacing + width);
+        }
+    };
     __decorate([
         property(cc.Label)
     ], Cell.prototype, "text", void 0);

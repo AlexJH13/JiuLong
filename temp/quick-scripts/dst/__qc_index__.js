@@ -12,6 +12,7 @@
                         if (!nodeEnv) {__quick_compile_project__.registerModule(__filename, module);}
 require('./assets/Script/Cell');
 require('./assets/Script/CellShader');
+require('./assets/Script/Config');
 require('./assets/Script/Game');
 require('./assets/XYUtils/XYUtils');
 

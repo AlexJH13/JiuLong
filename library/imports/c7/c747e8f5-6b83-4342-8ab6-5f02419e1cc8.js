@@ -31,6 +31,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 var XYUtils_1 = require("../XYUtils/XYUtils");
 var Cell_1 = require("./Cell");
+var Config_1 = require("./Config");
 var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
 var Game = /** @class */ (function (_super) {
     __extends(Game, _super);
@@ -59,15 +60,16 @@ var Game = /** @class */ (function (_super) {
         this.createGame();
     };
     Game.prototype.createGame = function () {
-        for (var row = 0; row < 7; row++) {
+        for (var row = 0; row < Config_1.Config.MAX_ROW; row++) {
             var rowArray = [];
-            for (var clo = 0; clo < 5; clo++) {
+            for (var clo = 0; clo < Config_1.Config.MAX_COL; clo++) {
                 var node = cc.instantiate(this.cellPrefab);
                 var cell = node.getComponent(Cell_1.default);
                 cell.id = XYUtils_1.XY.generateId();
-                cell.matrix = cc.v2(row, clo);
+                cell.matrix = cc.v2(clo, row);
                 cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
                 node.parent = this.mainNode;
+                cell.updatePos();
                 rowArray.push(node);
             }
             this.matrix.push(rowArray);
@@ -102,8 +104,8 @@ var Game = /** @class */ (function (_super) {
         }
     };
     Game.prototype.touchStart = function (event) {
-        for (var row = 0; row < 7; row++) {
-            for (var clo = 0; clo < 5; clo++) {
+        for (var row = 0; row < Config_1.Config.MAX_ROW; row++) {
+            for (var clo = 0; clo < Config_1.Config.MAX_COL; clo++) {
                 var cell = this.matrix[row][clo];
                 if (cell.getBoundingBoxToWorld().contains(event.getLocation())) {
                     this.touchEnable = true;
@@ -118,7 +120,7 @@ var Game = /** @class */ (function (_super) {
             if (cc.isValid(this.lastTouchCell)) {
                 for (var row = this.lastTouchCell.matrix.x - 1; row <= this.lastTouchCell.matrix.x + 1; row++) {
                     for (var clo = this.lastTouchCell.matrix.y - 1; clo <= this.lastTouchCell.matrix.y + 1; clo++) {
-                        if (row < 0 || row > 6 || clo < 0 || clo > 4) {
+                        if (row < 0 || row >= Config_1.Config.MAX_ROW || clo < 0 || clo >= Config_1.Config.MAX_COL) {
                             continue;
                         }
                         var cellNode = this.matrix[row][clo];
