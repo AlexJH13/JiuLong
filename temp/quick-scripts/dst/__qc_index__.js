@@ -13,7 +13,7 @@
 require('./assets/Script/Cell');
 require('./assets/Script/CellShader');
 require('./assets/Script/Game');
-require('./assets/Script/JL');
+require('./assets/XYUtils/XYUtils');
 
                     }
                     if (nodeEnv) {

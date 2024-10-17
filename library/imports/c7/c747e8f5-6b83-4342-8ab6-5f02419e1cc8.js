@@ -63,7 +63,8 @@ var Game = /** @class */ (function (_super) {
             for (var clo = 0; clo < 5; clo++) {
                 var node = cc.instantiate(this.cellPrefab);
                 var cell = node.getComponent(Cell_1.default);
-                cell.matrix = cc.v2(row, clo);
+                cell.id =
+                    cell.matrix = cc.v2(row, clo);
                 cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
                 node.parent = this.mainNode;
                 rowArray.push(node);
@@ -129,7 +130,7 @@ var Game = /** @class */ (function (_super) {
                                 }
                             }
                             if (cell.touched || cell.value > this.showSum) {
-                                return;
+                                continue;
                             }
                             this.addTouchCell(cell);
                             return;

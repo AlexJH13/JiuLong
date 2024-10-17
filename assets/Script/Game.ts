@@ -5,6 +5,7 @@
 // Learn life-cycle callbacks:
 //  - https://docs.cocos.com/creator/2.4/manual/en/scripting/life-cycle-callbacks.html
 
+import { XY } from "../XYUtils/XYUtils";
 import Cell from "./Cell";
 
 const {ccclass, property} = cc._decorator;
@@ -50,7 +51,7 @@ export default class Game extends cc.Component {
             for (let clo = 0; clo < 5; clo++) {
                 let node = cc.instantiate(this.cellPrefab);
                 let cell = node.getComponent(Cell);
-                cell.id = 
+                cell.id = XY.generateId();
                 cell.matrix = cc.v2(row, clo);
                 cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
                 node.parent = this.mainNode;
@@ -118,11 +119,9 @@ export default class Game extends cc.Component {
                         let cellNode = this.matrix[row][clo];
                         let cell = cellNode.getComponent(Cell);
 
-                        
-
                         if(cellNode.getBoundingBoxToWorld().contains(event.getLocation())) { 
                             if (cc.isValid(this.lastTouchCell.preTouchCell)) {
-                                if (this.lastTouchCell.preTouchCell.matrix.x === cell.matrix.x && this.lastTouchCell.preTouchCell.matrix.y === cell.matrix.y) {
+                                if (this.lastTouchCell.preTouchCell.id === cell.id) {
                                     this.removeTouchCell();
                                     return;
                                 }

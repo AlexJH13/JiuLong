@@ -35,6 +35,7 @@ var Cell = /** @class */ (function (_super) {
     function Cell() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.text = null;
+        _this._id = null;
         _this._value = 0;
         _this._matrix = null;
         _this._touched = false;
@@ -71,6 +72,16 @@ var Cell = /** @class */ (function (_super) {
                     .to(0.1, { scale: 1 }, { easing: 'cubicIn' })
                     .start();
             }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Cell.prototype, "id", {
+        get: function () {
+            return this._id;
+        },
+        set: function (id) {
+            this._id = id;
         },
         enumerable: false,
         configurable: true

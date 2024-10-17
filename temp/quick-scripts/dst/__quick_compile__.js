@@ -1,6 +1,6 @@
 
 (function () {
-var scripts = [{"deps":{"./assets/Script/Game":1,"./assets/Script/JL":2,"./assets/Script/Cell":3,"./assets/Script/CellShader":4},"path":"preview-scripts/__qc_index__.js"},{"deps":{"./Cell":3},"path":"preview-scripts/assets/Script/Game.js"},{"deps":{},"path":"preview-scripts/assets/Script/JL.js"},{"deps":{},"path":"preview-scripts/assets/Script/Cell.js"},{"deps":{},"path":"preview-scripts/assets/Script/CellShader.js"}];
+var scripts = [{"deps":{"./assets/Script/CellShader":3,"./assets/XYUtils/XYUtils":4,"./assets/Script/Game":1,"./assets/Script/Cell":2},"path":"preview-scripts/__qc_index__.js"},{"deps":{"./Cell":2},"path":"preview-scripts/assets/Script/Game.js"},{"deps":{},"path":"preview-scripts/assets/Script/Cell.js"},{"deps":{},"path":"preview-scripts/assets/Script/CellShader.js"},{"deps":{},"path":"preview-scripts/assets/XYUtils/XYUtils.js"}];
 var entries = ["preview-scripts/__qc_index__.js"];
 var bundleScript = 'preview-scripts/__qc_bundle__.js';
 
