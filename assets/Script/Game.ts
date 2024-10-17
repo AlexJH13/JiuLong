@@ -50,6 +50,7 @@ export default class Game extends cc.Component {
             for (let clo = 0; clo < 5; clo++) {
                 let node = cc.instantiate(this.cellPrefab);
                 let cell = node.getComponent(Cell);
+                cell.id = 
                 cell.matrix = cc.v2(row, clo);
                 cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
                 node.parent = this.mainNode;
@@ -67,12 +68,30 @@ export default class Game extends cc.Component {
     }
 
     private addTouchCell(cell: Cell): void {
-        cell.node.scale = 1.05;
         this.touchNodeList.push(cell.node);
-        cell.getComponent(Cell).touched = true;
-        this.touchSum += cell.getComponent(Cell).value;
+        cell.touched = true;
+        this.touchSum += cell.value;
         this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+        if (cc.isValid(this.lastTouchCell)) {
+            cell.preTouchCell = this.lastTouchCell;
+        }
         this.lastTouchCell = cell;
+    }
+
+    private removeTouchCell(): void {
+        let cellNode = this.touchNodeList[this.touchNodeList.length - 1];
+        let cell = cellNode.getComponent(Cell);
+        if (cc.isValid(cell.preTouchCell)) {
+            this.touchNodeList.pop();
+            cell.touched = false;
+            
+            this.lastTouchCell = cell.preTouchCell;
+            cell.preTouchCell = null;
+
+            this.touchSum  -= cell.value;
+            this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+            
+        }
     }
 
     private touchStart(event: cc.Event.EventTouch): void {
@@ -90,18 +109,30 @@ export default class Game extends cc.Component {
 
     private touchMoved(event: cc.Event.EventTouch): void {
         if (this.touchEnable) {
-            if (this.lastTouchCell) {
+            if (cc.isValid(this.lastTouchCell)) {
                 for (let row = this.lastTouchCell.matrix.x - 1; row <= this.lastTouchCell.matrix.x + 1; row++) {
                     for (let clo = this.lastTouchCell.matrix.y -1; clo <= this.lastTouchCell.matrix.y + 1; clo++) {
                         if (row < 0 || row > 6 || clo < 0 || clo > 4) {
                             continue;
                         }
-                        let cell = this.matrix[row][clo];
-                        if (cell.getComponent(Cell).touched || cell.getComponent(Cell).value > this.showSum) {
-                            continue;
-                        }
-                        if(cell.getBoundingBoxToWorld().contains(event.getLocation())) { 
-                            this.addTouchCell(cell.getComponent(Cell));
+                        let cellNode = this.matrix[row][clo];
+                        let cell = cellNode.getComponent(Cell);
+
+                        
+
+                        if(cellNode.getBoundingBoxToWorld().contains(event.getLocation())) { 
+                            if (cc.isValid(this.lastTouchCell.preTouchCell)) {
+                                if (this.lastTouchCell.preTouchCell.matrix.x === cell.matrix.x && this.lastTouchCell.preTouchCell.matrix.y === cell.matrix.y) {
+                                    this.removeTouchCell();
+                                    return;
+                                }
+                            }
+
+                            if (cell.touched || cell.value > this.showSum) {
+                                continue;
+                            }
+                            
+                            this.addTouchCell(cell);
                             return;
                         }
                     }
@@ -115,6 +146,7 @@ export default class Game extends cc.Component {
         this.touchSum = 0;
         this.showSum = 0;
         this.touchEnable = false;
+        this.lastTouchCell = null;
         this.touchNodeList = [];
     }
 

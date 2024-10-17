@@ -78,12 +78,26 @@ var Game = /** @class */ (function (_super) {
         return Math.floor(Math.random() * (max - min + 1)) + min; // 包含 min 和 max
     };
     Game.prototype.addTouchCell = function (cell) {
-        cell.node.scale = 1.05;
         this.touchNodeList.push(cell.node);
-        cell.getComponent(Cell_1.default).touched = true;
-        this.touchSum += cell.getComponent(Cell_1.default).value;
+        cell.touched = true;
+        this.touchSum += cell.value;
         this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+        if (cc.isValid(this.lastTouchCell)) {
+            cell.preTouchCell = this.lastTouchCell;
+        }
         this.lastTouchCell = cell;
+    };
+    Game.prototype.removeTouchCell = function () {
+        var cellNode = this.touchNodeList[this.touchNodeList.length - 1];
+        var cell = cellNode.getComponent(Cell_1.default);
+        if (cc.isValid(cell.preTouchCell)) {
+            this.touchNodeList.pop();
+            cell.touched = false;
+            this.lastTouchCell = cell.preTouchCell;
+            cell.preTouchCell = null;
+            this.touchSum -= cell.value;
+            this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+        }
     };
     Game.prototype.touchStart = function (event) {
         for (var row = 0; row < 7; row++) {
@@ -99,18 +113,25 @@ var Game = /** @class */ (function (_super) {
     };
     Game.prototype.touchMoved = function (event) {
         if (this.touchEnable) {
-            if (this.lastTouchCell) {
+            if (cc.isValid(this.lastTouchCell)) {
                 for (var row = this.lastTouchCell.matrix.x - 1; row <= this.lastTouchCell.matrix.x + 1; row++) {
                     for (var clo = this.lastTouchCell.matrix.y - 1; clo <= this.lastTouchCell.matrix.y + 1; clo++) {
                         if (row < 0 || row > 6 || clo < 0 || clo > 4) {
                             continue;
                         }
-                        var cell = this.matrix[row][clo];
-                        if (cell.getComponent(Cell_1.default).touched || cell.getComponent(Cell_1.default).value > this.showSum) {
-                            continue;
-                        }
-                        if (cell.getBoundingBoxToWorld().contains(event.getLocation())) {
-                            this.addTouchCell(cell.getComponent(Cell_1.default));
+                        var cellNode = this.matrix[row][clo];
+                        var cell = cellNode.getComponent(Cell_1.default);
+                        if (cellNode.getBoundingBoxToWorld().contains(event.getLocation())) {
+                            if (cc.isValid(this.lastTouchCell.preTouchCell)) {
+                                if (this.lastTouchCell.preTouchCell.matrix.x === cell.matrix.x && this.lastTouchCell.preTouchCell.matrix.y === cell.matrix.y) {
+                                    this.removeTouchCell();
+                                    return;
+                                }
+                            }
+                            if (cell.touched || cell.value > this.showSum) {
+                                return;
+                            }
+                            this.addTouchCell(cell);
                             return;
                         }
                     }
@@ -122,6 +143,7 @@ var Game = /** @class */ (function (_super) {
         this.touchSum = 0;
         this.showSum = 0;
         this.touchEnable = false;
+        this.lastTouchCell = null;
         this.touchNodeList = [];
     };
     __decorate([

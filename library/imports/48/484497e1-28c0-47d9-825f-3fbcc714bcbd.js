@@ -38,6 +38,7 @@ var Cell = /** @class */ (function (_super) {
         _this._value = 0;
         _this._matrix = null;
         _this._touched = false;
+        _this._preTouchCell = null;
         _this.config = {
             2: cc.color().fromHEX('#ff7778'),
             4: cc.color().fromHEX('#a976f3'),
@@ -60,6 +61,26 @@ var Cell = /** @class */ (function (_super) {
         },
         set: function (flag) {
             this._touched = flag;
+            if (this._touched) {
+                cc.tween(this.node)
+                    .to(0.1, { scale: 1.07 }, { easing: 'cubicOut' })
+                    .start();
+            }
+            else {
+                cc.tween(this.node)
+                    .to(0.1, { scale: 1 }, { easing: 'cubicIn' })
+                    .start();
+            }
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(Cell.prototype, "preTouchCell", {
+        get: function () {
+            return this._preTouchCell;
+        },
+        set: function (cell) {
+            this._preTouchCell = cell;
         },
         enumerable: false,
         configurable: true
