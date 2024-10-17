@@ -7,6 +7,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.XY = void 0;
 var XY;
 (function (XY) {
+    /**
+     * 生成随机不重复的id
+     * @returns 随机不重复的id
+     */
     function generateId() {
         var timestamp = Date.now().toString(36); // 将时间戳转换为基36字符串
         var randomPart = Math.random().toString(36).substring(2, 8); // 生成随机字符串

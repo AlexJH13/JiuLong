@@ -29,6 +29,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var XYUtils_1 = require("../XYUtils/XYUtils");
 var Cell_1 = require("./Cell");
 var _a = cc._decorator, ccclass = _a.ccclass, property = _a.property;
 var Game = /** @class */ (function (_super) {
@@ -63,8 +64,8 @@ var Game = /** @class */ (function (_super) {
             for (var clo = 0; clo < 5; clo++) {
                 var node = cc.instantiate(this.cellPrefab);
                 var cell = node.getComponent(Cell_1.default);
-                cell.id =
-                    cell.matrix = cc.v2(row, clo);
+                cell.id = XYUtils_1.XY.generateId();
+                cell.matrix = cc.v2(row, clo);
                 cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
                 node.parent = this.mainNode;
                 rowArray.push(node);
@@ -124,7 +125,7 @@ var Game = /** @class */ (function (_super) {
                         var cell = cellNode.getComponent(Cell_1.default);
                         if (cellNode.getBoundingBoxToWorld().contains(event.getLocation())) {
                             if (cc.isValid(this.lastTouchCell.preTouchCell)) {
-                                if (this.lastTouchCell.preTouchCell.matrix.x === cell.matrix.x && this.lastTouchCell.preTouchCell.matrix.y === cell.matrix.y) {
+                                if (this.lastTouchCell.preTouchCell.id === cell.id) {
                                     this.removeTouchCell();
                                     return;
                                 }
