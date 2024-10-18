@@ -40,6 +40,7 @@ var Game = /** @class */ (function (_super) {
         _this.cellPrefab = null;
         _this.mainNode = null;
         _this.graphicsNode = null;
+        _this.sumCell = null;
         // 5*7 的二维数组
         _this.matrix = [];
         _this.touchSum = 0;
@@ -58,7 +59,7 @@ var Game = /** @class */ (function (_super) {
         this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.touchEnded.bind(this), this);
     };
     Game.prototype.start = function () {
-        // this.createGame();
+        this.createGame();
     };
     Game.prototype.drawLine = function (pos1, pos2) {
         var node = new cc.Node();
@@ -98,6 +99,8 @@ var Game = /** @class */ (function (_super) {
         cell.touched = true;
         this.touchSum += cell.value;
         this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+        this.sumCell.value = this.showSum;
+        this.sumCell.node.active = true;
         if (cc.isValid(this.lastTouchCell)) {
             cell.preTouchCell = this.lastTouchCell;
             cell.graphics = this.drawLine(cell.node.getPosition(), this.lastTouchCell.node.getPosition());
@@ -115,6 +118,7 @@ var Game = /** @class */ (function (_super) {
             cell.preTouchCell = null;
             this.touchSum -= cell.value;
             this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+            this.sumCell.value = this.showSum;
         }
     };
     Game.prototype.touchStart = function (event) {
@@ -167,6 +171,7 @@ var Game = /** @class */ (function (_super) {
         this.touchEnable = false;
         this.lastTouchCell = null;
         this.touchNodeList = [];
+        this.sumCell.node.active = false;
     };
     __decorate([
         property(cc.Prefab)
@@ -177,6 +182,9 @@ var Game = /** @class */ (function (_super) {
     __decorate([
         property(cc.Node)
     ], Game.prototype, "graphicsNode", void 0);
+    __decorate([
+        property(Cell_1.default)
+    ], Game.prototype, "sumCell", void 0);
     Game = __decorate([
         ccclass
     ], Game);

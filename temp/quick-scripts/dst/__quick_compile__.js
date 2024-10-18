@@ -1,6 +1,6 @@
 
 (function () {
-var scripts = [{"deps":{"./assets/Script/Config":5,"./assets/Script/Game":1,"./assets/Script/Cell":2,"./assets/XYUtils/XYUtils":4,"./assets/Script/CellShader":3},"path":"preview-scripts/__qc_index__.js"},{"deps":{"./Cell":2,"./Config":5,"../XYUtils/XYUtils":4},"path":"preview-scripts/assets/Script/Game.js"},{"deps":{"./Config":5},"path":"preview-scripts/assets/Script/Cell.js"},{"deps":{},"path":"preview-scripts/assets/Script/CellShader.js"},{"deps":{},"path":"preview-scripts/assets/XYUtils/XYUtils.js"},{"deps":{},"path":"preview-scripts/assets/Script/Config.js"}];
+var scripts = [{"deps":{"./assets/Script/Config":5,"./assets/Script/Game":4,"./assets/Script/Cell":3,"./assets/XYUtils/XYUtils":2,"./assets/Script/CellShader":1},"path":"preview-scripts/__qc_index__.js"},{"deps":{},"path":"preview-scripts/assets/Script/CellShader.js"},{"deps":{},"path":"preview-scripts/assets/XYUtils/XYUtils.js"},{"deps":{"./Config":5},"path":"preview-scripts/assets/Script/Cell.js"},{"deps":{"./Cell":3,"./Config":5,"../XYUtils/XYUtils":2},"path":"preview-scripts/assets/Script/Game.js"},{"deps":{},"path":"preview-scripts/assets/Script/Config.js"}];
 var entries = ["preview-scripts/__qc_index__.js"];
 var bundleScript = 'preview-scripts/__qc_bundle__.js';
 

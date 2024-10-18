@@ -23,6 +23,9 @@ export default class Game extends cc.Component {
     @property(cc.Node)
     graphicsNode: cc.Node = null;
 
+    @property(Cell)
+    sumCell: Cell = null;
+
     // 5*7 的二维数组
     matrix: cc.Node[][]  = [];
 
@@ -90,6 +93,8 @@ export default class Game extends cc.Component {
         cell.touched = true;
         this.touchSum += cell.value;
         this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+        this.sumCell.value = this.showSum;
+        this.sumCell.node.active = true;
         if (cc.isValid(this.lastTouchCell)) {
             cell.preTouchCell = this.lastTouchCell;
             cell.graphics = this.drawLine(cell.node.getPosition(), this.lastTouchCell.node.getPosition());
@@ -110,6 +115,7 @@ export default class Game extends cc.Component {
 
             this.touchSum  -= cell.value;
             this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+            this.sumCell.value = this.showSum;
             
         }
     }
@@ -168,6 +174,7 @@ export default class Game extends cc.Component {
         this.touchEnable = false;
         this.lastTouchCell = null;
         this.touchNodeList = [];
+        this.sumCell.node.active = false;
     }
 
     // update (dt) {}
