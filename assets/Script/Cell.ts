@@ -53,6 +53,7 @@ export default class Cell extends cc.Component {
             .to(0.1, {scale: 1.07}, {easing: 'cubicOut'})
             .start();
         } else {
+            this.graphics = null;
             cc.tween(this.node)
             .to(0.1, {scale: 1}, {easing: 'cubicIn'})
             .start();
@@ -69,6 +70,8 @@ export default class Cell extends cc.Component {
             this._graphics = graphics;
         } else if(this._graphics){
             this._graphics.clear();
+            this._graphics.node.destroy();
+            this._graphics = null;
         }
     }
 
@@ -137,6 +140,13 @@ export default class Cell extends cc.Component {
             const deltaX = x > centerX ? Math.floor(x - centerX) :  Math.ceil(x - centerX);
             let p = x > centerX ? 1: -1;
             return (0.5 * width + spacing / 2) * p + deltaX * (spacing + width);
+        }
+    }
+
+    protected onDestroy(): void {
+        if (this._graphics) {
+            this._graphics.clear();
+            this._graphics.node.destroy();
         }
     }
 

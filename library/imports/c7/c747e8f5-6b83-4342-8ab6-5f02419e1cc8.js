@@ -166,6 +166,27 @@ var Game = /** @class */ (function (_super) {
             this.lastTouchCell.touched = false;
             this.lastTouchCell.preTouchCell = null;
         }
+        else {
+            for (var index = 0; index < this.touchNodeList.length; index++) {
+                var element = this.touchNodeList[index];
+                var cell = element.getComponent(Cell_1.default);
+                if (cell.cellId === this.lastTouchCell.cellId) {
+                    this.lastTouchCell.value = this.showSum;
+                    this.lastTouchCell.touched = false;
+                    this.lastTouchCell.preTouchCell = null;
+                }
+                else {
+                    element.destroy();
+                    for (var i = 0; i < this.matrix.length; i++) {
+                        var element1 = this.matrix[i][cell.matrix.x];
+                        if (cc.isValid(element1) && element1.getComponent(Cell_1.default).matrix.y > cell.matrix.y) {
+                            element1.getComponent(Cell_1.default).matrix.y -= 1;
+                            element1.getComponent(Cell_1.default).updatePos();
+                        }
+                    }
+                }
+            }
+        }
         this.touchSum = 0;
         this.showSum = 0;
         this.touchEnable = false;

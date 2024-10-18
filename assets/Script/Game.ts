@@ -29,7 +29,6 @@ export default class Game extends cc.Component {
     // 5*7 的二维数组
     matrix: cc.Node[][]  = [];
 
-
     touchSum: number = 0;
     showSum: number = 0;
 
@@ -66,7 +65,7 @@ export default class Game extends cc.Component {
 
     private createGame(): void {
         for (let row = 0; row < Config.MAX_ROW; row++) {
-            let rowArray = []
+            let rowArray = [];
             for (let col = 0; col < Config.MAX_COL; col++) {
                 let node = cc.instantiate(this.cellPrefab);
                 let cell = node.getComponent(Cell);
@@ -168,6 +167,25 @@ export default class Game extends cc.Component {
         if (this.touchNodeList.length === 1) {
             this.lastTouchCell.touched = false;
             this.lastTouchCell.preTouchCell = null;
+        } else {
+            for (let index = 0; index < this.touchNodeList.length; index++) {
+                const element = this.touchNodeList[index];
+                const cell = element.getComponent(Cell);
+                if (cell.cellId === this.lastTouchCell.cellId) {
+                    this.lastTouchCell.value = this.showSum;
+                    this.lastTouchCell.touched = false;
+                    this.lastTouchCell.preTouchCell = null;
+                } else {
+                    element.destroy();
+                    for (let i = 0; i < this.matrix.length; i++) {
+                        const element1 = this.matrix[i][cell.matrix.x];
+                        if (cc.isValid(element1) && element1.getComponent(Cell).matrix.y > cell.matrix.y) {
+                            element1.getComponent(Cell).matrix.y -= 1; 
+                            element1.getComponent(Cell).updatePos();
+                        }
+                    }
+                }
+            }
         }
         this.touchSum = 0;
         this.showSum = 0;

@@ -70,6 +70,7 @@ var Cell = /** @class */ (function (_super) {
                     .start();
             }
             else {
+                this.graphics = null;
                 cc.tween(this.node)
                     .to(0.1, { scale: 1 }, { easing: 'cubicIn' })
                     .start();
@@ -93,6 +94,8 @@ var Cell = /** @class */ (function (_super) {
             }
             else if (this._graphics) {
                 this._graphics.clear();
+                this._graphics.node.destroy();
+                this._graphics = null;
             }
         },
         enumerable: false,
@@ -163,6 +166,12 @@ var Cell = /** @class */ (function (_super) {
             var deltaX = x > centerX ? Math.floor(x - centerX) : Math.ceil(x - centerX);
             var p = x > centerX ? 1 : -1;
             return (0.5 * width + spacing / 2) * p + deltaX * (spacing + width);
+        }
+    };
+    Cell.prototype.onDestroy = function () {
+        if (this._graphics) {
+            this._graphics.clear();
+            this._graphics.node.destroy();
         }
     };
     __decorate([
