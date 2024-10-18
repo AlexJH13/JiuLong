@@ -58,7 +58,7 @@ var Game = /** @class */ (function (_super) {
         this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.touchEnded.bind(this), this);
     };
     Game.prototype.start = function () {
-        this.createGame();
+        // this.createGame();
     };
     Game.prototype.drawLine = function (pos1, pos2) {
         var node = new cc.Node();

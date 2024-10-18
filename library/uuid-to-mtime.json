@@ -25,8 +25,8 @@
     "relativePath": "Texture/HelloWorld.png"
   },
   "9def7054-c9ad-4df7-850b-4f2711793fa9": {
-    "asset": 1729156371151,
-    "meta": 1729156371153,
+    "asset": 1729158199056,
+    "meta": 1729158199058,
     "relativePath": "Scene/GameScene.fire"
   },
   "260c4812-e28a-4ea2-adf4-dc12502d3d88": {
@@ -595,8 +595,8 @@
     "relativePath": "Script/Cell.ts"
   },
   "c747e8f5-6b83-4342-8ab6-5f02419e1cc8": {
-    "asset": 1729156961925,
-    "meta": 1729156964732,
+    "asset": 1729158225734,
+    "meta": 1729158227312,
     "relativePath": "Script/Game.ts"
   }
 }
