@@ -45,6 +45,7 @@ var Cell = /** @class */ (function (_super) {
         _this._preTouchCell = null;
         _this._graphics = null;
         _this.movedPos = null;
+        _this.origin = null;
         _this.config = {
             2: cc.color().fromHEX('#ff7778'),
             4: cc.color().fromHEX('#a976f3'),
@@ -149,6 +150,9 @@ var Cell = /** @class */ (function (_super) {
             return this._matrix;
         },
         set: function (v) {
+            if (!this.origin) {
+                this.origin = v;
+            }
             this._matrix = v;
             this.x.string = this._matrix.x.toString();
             this.y.string = this._matrix.y.toString();
@@ -162,6 +166,12 @@ var Cell = /** @class */ (function (_super) {
         },
         set: function (v) {
             if (this.config[v]) {
+                this._value = v;
+                this.text.string = v.toString();
+                this.node.color = this.config[v];
+            }
+            else {
+                v = 128;
                 this._value = v;
                 this.text.string = v.toString();
                 this.node.color = this.config[v];

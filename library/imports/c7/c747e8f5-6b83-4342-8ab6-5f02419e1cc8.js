@@ -78,11 +78,14 @@ var Game = /** @class */ (function (_super) {
         for (var row = 0; row < Config_1.Config.MAX_ROW; row++) {
             var rowArray = [];
             for (var col = 0; col < Config_1.Config.MAX_COL; col++) {
-                var node = cc.instantiate(this.cellPrefab);
+                // let node = cc.instantiate(this.cellPrefab);
+                // let cell = node.getComponent(Cell);
+                // cell.cellId = XY.generateId();
+                // cell.matrix = cc.v2(col, row);
+                // cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
+                var node = this.createRandomCell();
                 var cell = node.getComponent(Cell_1.default);
-                cell.cellId = XYUtils_1.XY.generateId();
                 cell.matrix = cc.v2(col, row);
-                cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
                 node.parent = this.mainNode;
                 cell.updatePos();
                 this.cells.push(cell);
@@ -90,6 +93,13 @@ var Game = /** @class */ (function (_super) {
             }
             this.matrix.push(rowArray);
         }
+    };
+    Game.prototype.createRandomCell = function () {
+        var node = cc.instantiate(this.cellPrefab);
+        var cell = node.getComponent(Cell_1.default);
+        cell.cellId = XYUtils_1.XY.generateId();
+        cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
+        return node;
     };
     Game.prototype.getRandomIntInclusive = function (min, max) {
         // 确保 min 和 max 是整数
@@ -129,7 +139,7 @@ var Game = /** @class */ (function (_super) {
             var element = this.cells[index];
             if (element.node.getBoundingBoxToWorld().contains(event.getLocation())) {
                 this.touchEnable = true;
-                cc.log(element);
+                cc.log("touch id: " + element.cellId + " (" + element.origin.x + ", " + element.origin.y + ")");
                 this.addTouchCell(element);
                 return;
             }
@@ -145,7 +155,7 @@ var Game = /** @class */ (function (_super) {
                         }
                         var cellNode = this.matrix[row][col].node;
                         if (!cc.isValid(cellNode)) {
-                            return;
+                            continue;
                         }
                         var cell = cellNode.getComponent(Cell_1.default);
                         if (cellNode.getBoundingBoxToWorld().contains(event.getLocation())) {
@@ -167,6 +177,12 @@ var Game = /** @class */ (function (_super) {
         }
     };
     Game.prototype.updateMatrix = function () {
+        for (var i = 0; i < this.matrix.length; i++) {
+            var element = this.matrix[i];
+            for (var j = 0; j < element.length; j++) {
+                element[j].node = null;
+            }
+        }
         for (var index = 0; index < this.cells.length; index++) {
             var element = this.cells[index];
             if (cc.isValid(element)) {
@@ -187,24 +203,30 @@ var Game = /** @class */ (function (_super) {
                     this_1.lastTouchCell.value = this_1.showSum;
                     this_1.lastTouchCell.touched = false;
                     this_1.lastTouchCell.preTouchCell = null;
-                    // }
                 }
                 else {
-                    cc.log("\u6D88\u9664cell, id: " + cell.cellId + " matrix: {x: " + cell.matrix.x + ", y: " + cell.matrix.y + "} value: " + cell.value);
                     this_1.cells = this_1.cells.filter(function (cell) { return cell.cellId != element.getComponent(Cell_1.default).cellId; });
+                    var elementy = element.getComponent(Cell_1.default).matrix.y;
+                    var elementx = element.getComponent(Cell_1.default).matrix.x;
                     element.destroy();
-                    for (var i = 0; i < this_1.matrix.length; i++) {
-                        var element1 = this_1.matrix[i][cell.matrix.x].node;
+                    var newNode = this_1.createRandomCell();
+                    var newCell = newNode.getComponent(Cell_1.default);
+                    newCell.matrix = cc.v2(elementx, Config_1.Config.MAX_ROW);
+                    newCell.updatePos();
+                    newCell.matrix = cc.v2(elementx, Config_1.Config.MAX_ROW - 1);
+                    newCell.updatePos(true);
+                    newNode.parent = this_1.mainNode;
+                    this_1.cells.push(newCell);
+                    for (var i = elementy + 1; i < this_1.matrix.length; i++) {
+                        var element1 = this_1.matrix[i][elementx].node;
                         if (cc.isValid(element1) && element1.getComponent(Cell_1.default).matrix.y > cell.matrix.y) {
-                            var mt = element1.getComponent(Cell_1.default).matrix.clone();
-                            var mx = mt.x;
-                            var my = mt.y;
-                            cc.log("\u5237\u65B0cell, id: " + element1.getComponent(Cell_1.default).cellId + " \u4E4B\u524D\u4E3A\uFF1Amatrix: {x: " + mx + ", y: " + my + "}");
+                            // let mt = element1.getComponent(Cell).matrix.clone();
+                            // let mx = mt.x;
+                            // let my = mt.y;
                             element1.getComponent(Cell_1.default).matrix = cc.v2(element1.getComponent(Cell_1.default).matrix.x, element1.getComponent(Cell_1.default).matrix.y - 1);
-                            mt = element1.getComponent(Cell_1.default).matrix.clone();
-                            mx = mt.x;
-                            my = mt.y;
-                            cc.log("\u5237\u65B0cell, id: " + element1.getComponent(Cell_1.default).cellId + " \u4E4B\u540E\u4E3A\uFF1Amatrix: {x: " + mx + ", y: " + my + "}");
+                            // mt = element1.getComponent(Cell).matrix.clone();
+                            // mx = mt.x;
+                            // my = mt.y;
                             element1.getComponent(Cell_1.default).updatePos(true);
                         }
                     }

@@ -35,6 +35,8 @@ export default class Cell extends cc.Component {
 
     private movedPos: cc.Vec2 = null;
 
+    public origin: cc.Vec2 = null;
+
     private config: {[key: number]: cc.Color} = {
         2: cc.color().fromHEX('#ff7778'),
         4: cc.color().fromHEX('#a976f3'),
@@ -130,6 +132,9 @@ export default class Cell extends cc.Component {
     }
 
     public set matrix(v: cc.Vec2) {
+        if (!this.origin) {
+            this.origin = v;
+        }
         this._matrix = v;
         this.x.string = this._matrix.x.toString();
         this.y.string = this._matrix.y.toString();
@@ -141,6 +146,11 @@ export default class Cell extends cc.Component {
     
     public set value(v : number) {
         if (this.config[v]) {
+            this._value = v;
+            this.text.string = v.toString();
+            this.node.color = this.config[v];
+        } else {
+            v = 128;
             this._value = v;
             this.text.string = v.toString();
             this.node.color = this.config[v];

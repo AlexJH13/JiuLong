@@ -75,11 +75,14 @@ export default class Game extends cc.Component {
         for (let row = 0; row < Config.MAX_ROW; row++) {
             let rowArray = [];
             for (let col = 0; col < Config.MAX_COL; col++) {
-                let node = cc.instantiate(this.cellPrefab);
+                // let node = cc.instantiate(this.cellPrefab);
+                // let cell = node.getComponent(Cell);
+                // cell.cellId = XY.generateId();
+                // cell.matrix = cc.v2(col, row);
+                // cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
+                let node = this.createRandomCell();
                 let cell = node.getComponent(Cell);
-                cell.cellId = XY.generateId();
                 cell.matrix = cc.v2(col, row);
-                cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
                 node.parent = this.mainNode;
                 cell.updatePos();
                 this.cells.push(cell);
@@ -87,6 +90,14 @@ export default class Game extends cc.Component {
             }
             this.matrix.push(rowArray);
         }
+    }
+
+    private createRandomCell(): cc.Node {
+        let node = cc.instantiate(this.cellPrefab);
+        let cell = node.getComponent(Cell);
+        cell.cellId = XY.generateId();
+        cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
+        return node;
     }
 
     private getRandomIntInclusive(min: number, max: number): number {
@@ -133,7 +144,7 @@ export default class Game extends cc.Component {
             const element = this.cells[index];
             if(element.node.getBoundingBoxToWorld().contains(event.getLocation())) {
                 this.touchEnable = true;
-                cc.log(element);
+                cc.log(`touch id: ${element.cellId} (${element.origin.x}, ${element.origin.y})`);
                 this.addTouchCell(element);
                 return;
             }
@@ -150,7 +161,7 @@ export default class Game extends cc.Component {
                         }
                         let cellNode = this.matrix[row][col].node;
                         if (!cc.isValid(cellNode)) {
-                            return;
+                            continue;
                         }
                         let cell = cellNode.getComponent(Cell);
                         if(cellNode.getBoundingBoxToWorld().contains(event.getLocation())) {
@@ -173,6 +184,13 @@ export default class Game extends cc.Component {
     }
 
     private updateMatrix(): void {
+        for (let i = 0; i < this.matrix.length; i++) {
+            const element = this.matrix[i];
+            for (let j = 0; j < element.length; j++) {
+                element[j].node = null;
+            }
+        }
+
         for (let index = 0; index < this.cells.length; index++) {
             const element = this.cells[index];
             if (cc.isValid(element)) {
@@ -193,32 +211,38 @@ export default class Game extends cc.Component {
                     this.lastTouchCell.value = this.showSum;
                     this.lastTouchCell.touched = false;
                     this.lastTouchCell.preTouchCell = null;
-                // }
                 } else {
-                    cc.log(`消除cell, id: ${cell.cellId} matrix: {x: ${cell.matrix.x}, y: ${cell.matrix.y}} value: ${cell.value}`)
                     this.cells = this.cells.filter(cell=> cell.cellId != element.getComponent(Cell).cellId);
+                    let elementy = element.getComponent(Cell).matrix.y;
+                    let elementx = element.getComponent(Cell).matrix.x;
                     element.destroy();
-                    for (let i = 0; i < this.matrix.length; i++) {
-                        const element1 = this.matrix[i][cell.matrix.x].node;
+
+                    let newNode = this.createRandomCell();
+                    let newCell = newNode.getComponent(Cell);
+                    newCell.matrix = cc.v2(elementx, Config.MAX_ROW);
+                    newCell.updatePos();
+                    newCell.matrix = cc.v2(elementx, Config.MAX_ROW - 1);
+                    newCell.updatePos(true);
+                    newNode.parent = this.mainNode;
+                    this.cells.push(newCell);
+
+                    for (let i = elementy + 1; i < this.matrix.length; i++) {
+                        const element1 = this.matrix[i][elementx].node;
                         if (cc.isValid(element1) && element1.getComponent(Cell).matrix.y > cell.matrix.y) {
-                            let mt = element1.getComponent(Cell).matrix.clone();
-                            let mx = mt.x;
-                            let my = mt.y;
-                            cc.log(`刷新cell, id: ${element1.getComponent(Cell).cellId} 之前为：matrix: {x: ${mx}, y: ${my}}`)
+                            // let mt = element1.getComponent(Cell).matrix.clone();
+                            // let mx = mt.x;
+                            // let my = mt.y;
                             element1.getComponent(Cell).matrix = cc.v2(element1.getComponent(Cell).matrix.x, element1.getComponent(Cell).matrix.y - 1);
-                            mt = element1.getComponent(Cell).matrix.clone();
-                            mx = mt.x;
-                            my = mt.y;
-                            cc.log(`刷新cell, id: ${element1.getComponent(Cell).cellId} 之后为：matrix: {x: ${mx}, y: ${my}}`)
+                            // mt = element1.getComponent(Cell).matrix.clone();
+                            // mx = mt.x;
+                            // my = mt.y;
                             element1.getComponent(Cell).updatePos(true);
                         }
                     }
                     this.updateMatrix();
                 }
-
-               
-               
             }
+            
         }
         this.touchSum = 0;
         this.showSum = 0;
