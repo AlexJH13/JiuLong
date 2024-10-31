@@ -15,6 +15,12 @@ export default class Cell extends cc.Component {
     @property(cc.Label)
     text: cc.Label = null;
 
+    @property(cc.Label)
+    x: cc.Label = null;
+
+    @property(cc.Label)
+    y: cc.Label = null;
+
     private _cellId: string = null;
 
     private _value: number = 0;
@@ -26,6 +32,8 @@ export default class Cell extends cc.Component {
     private _preTouchCell: Cell = null;
 
     private _graphics: cc.Graphics = null;
+
+    private movedPos: cc.Vec2 = null;
 
     private config: {[key: number]: cc.Color} = {
         2: cc.color().fromHEX('#ff7778'),
@@ -60,9 +68,31 @@ export default class Cell extends cc.Component {
         }
     }
 
+    protected update(dt: number): void {
+        this.checkMovedPos();  
+    }
+
+    private checkMovedPos(): void {
+        if (this.movedPos) {
+            cc.tween(this.node)
+            .to(0.2, {position: cc.v3(this.movedPos)})
+            .start();
+            this.movedPos = null;
+        }
+    }
+
     public updatePos(withMove: boolean = false): void {
         let pos = this.getPosFromMatrix();
-        this.node.setPosition(pos);
+        if (withMove) {
+            this.movedPos = pos;
+            // cc.tween(this.node)
+            // .to(0.2, {position: cc.v3(pos)})
+            // .start();
+        } else {
+            this.node.setPosition(pos);
+        }
+       
+        // this.node.setPosition(pos);
     }
 
     public set graphics(graphics: cc.Graphics) {
@@ -101,6 +131,8 @@ export default class Cell extends cc.Component {
 
     public set matrix(v: cc.Vec2) {
         this._matrix = v;
+        this.x.string = this._matrix.x.toString();
+        this.y.string = this._matrix.y.toString();
     }
     
     public get matrix() : cc.Vec2 {

@@ -36,12 +36,15 @@ var Cell = /** @class */ (function (_super) {
     function Cell() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.text = null;
+        _this.x = null;
+        _this.y = null;
         _this._cellId = null;
         _this._value = 0;
         _this._matrix = null;
         _this._touched = false;
         _this._preTouchCell = null;
         _this._graphics = null;
+        _this.movedPos = null;
         _this.config = {
             2: cc.color().fromHEX('#ff7778'),
             4: cc.color().fromHEX('#a976f3'),
@@ -79,10 +82,30 @@ var Cell = /** @class */ (function (_super) {
         enumerable: false,
         configurable: true
     });
+    Cell.prototype.update = function (dt) {
+        this.checkMovedPos();
+    };
+    Cell.prototype.checkMovedPos = function () {
+        if (this.movedPos) {
+            cc.tween(this.node)
+                .to(0.2, { position: cc.v3(this.movedPos) })
+                .start();
+            this.movedPos = null;
+        }
+    };
     Cell.prototype.updatePos = function (withMove) {
         if (withMove === void 0) { withMove = false; }
         var pos = this.getPosFromMatrix();
-        this.node.setPosition(pos);
+        if (withMove) {
+            this.movedPos = pos;
+            // cc.tween(this.node)
+            // .to(0.2, {position: cc.v3(pos)})
+            // .start();
+        }
+        else {
+            this.node.setPosition(pos);
+        }
+        // this.node.setPosition(pos);
     };
     Object.defineProperty(Cell.prototype, "graphics", {
         get: function () {
@@ -127,6 +150,8 @@ var Cell = /** @class */ (function (_super) {
         },
         set: function (v) {
             this._matrix = v;
+            this.x.string = this._matrix.x.toString();
+            this.y.string = this._matrix.y.toString();
         },
         enumerable: false,
         configurable: true
@@ -177,6 +202,12 @@ var Cell = /** @class */ (function (_super) {
     __decorate([
         property(cc.Label)
     ], Cell.prototype, "text", void 0);
+    __decorate([
+        property(cc.Label)
+    ], Cell.prototype, "x", void 0);
+    __decorate([
+        property(cc.Label)
+    ], Cell.prototype, "y", void 0);
     Cell = __decorate([
         ccclass
     ], Cell);

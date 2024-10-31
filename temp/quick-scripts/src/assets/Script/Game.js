@@ -42,12 +42,14 @@ var Game = /** @class */ (function (_super) {
         _this.graphicsNode = null;
         _this.sumCell = null;
         // 5*7 的二维数组
+        // matrix: cc.Node[][]  = [];
         _this.matrix = [];
         _this.touchSum = 0;
         _this.showSum = 0;
         _this.touchEnable = false;
         _this.lastTouchCell = null;
         _this.touchNodeList = [];
+        _this.cells = [];
         return _this;
         // update (dt) {}
     }
@@ -83,7 +85,8 @@ var Game = /** @class */ (function (_super) {
                 cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
                 node.parent = this.mainNode;
                 cell.updatePos();
-                rowArray.push(node);
+                this.cells.push(cell);
+                rowArray.push({ node: node });
             }
             this.matrix.push(rowArray);
         }
@@ -122,14 +125,13 @@ var Game = /** @class */ (function (_super) {
         }
     };
     Game.prototype.touchStart = function (event) {
-        for (var row = 0; row < Config_1.Config.MAX_ROW; row++) {
-            for (var col = 0; col < Config_1.Config.MAX_COL; col++) {
-                var cell = this.matrix[row][col];
-                if (cell.getBoundingBoxToWorld().contains(event.getLocation())) {
-                    this.touchEnable = true;
-                    this.addTouchCell(cell.getComponent(Cell_1.default));
-                    return;
-                }
+        for (var index = 0; index < this.cells.length; index++) {
+            var element = this.cells[index];
+            if (element.node.getBoundingBoxToWorld().contains(event.getLocation())) {
+                this.touchEnable = true;
+                cc.log(element);
+                this.addTouchCell(element);
+                return;
             }
         }
     };
@@ -141,7 +143,10 @@ var Game = /** @class */ (function (_super) {
                         if (row < 0 || row >= Config_1.Config.MAX_ROW || col < 0 || col >= Config_1.Config.MAX_COL) {
                             continue;
                         }
-                        var cellNode = this.matrix[row][col];
+                        var cellNode = this.matrix[row][col].node;
+                        if (!cc.isValid(cellNode)) {
+                            return;
+                        }
                         var cell = cellNode.getComponent(Cell_1.default);
                         if (cellNode.getBoundingBoxToWorld().contains(event.getLocation())) {
                             if (cc.isValid(this.lastTouchCell.preTouchCell)) {
@@ -161,30 +166,54 @@ var Game = /** @class */ (function (_super) {
             }
         }
     };
+    Game.prototype.updateMatrix = function () {
+        for (var index = 0; index < this.cells.length; index++) {
+            var element = this.cells[index];
+            if (cc.isValid(element)) {
+                this.matrix[element.matrix.y][element.matrix.x].node = element.node;
+            }
+        }
+    };
     Game.prototype.touchEnded = function (event) {
         if (this.touchNodeList.length === 1) {
             this.lastTouchCell.touched = false;
             this.lastTouchCell.preTouchCell = null;
         }
         else {
-            for (var index = 0; index < this.touchNodeList.length; index++) {
-                var element = this.touchNodeList[index];
+            var _loop_1 = function (index) {
+                var element = this_1.touchNodeList[index];
                 var cell = element.getComponent(Cell_1.default);
-                if (cell.cellId === this.lastTouchCell.cellId) {
-                    this.lastTouchCell.value = this.showSum;
-                    this.lastTouchCell.touched = false;
-                    this.lastTouchCell.preTouchCell = null;
+                if (cell.cellId === this_1.lastTouchCell.cellId) {
+                    this_1.lastTouchCell.value = this_1.showSum;
+                    this_1.lastTouchCell.touched = false;
+                    this_1.lastTouchCell.preTouchCell = null;
+                    // }
                 }
                 else {
+                    cc.log("\u6D88\u9664cell, id: " + cell.cellId + " matrix: {x: " + cell.matrix.x + ", y: " + cell.matrix.y + "} value: " + cell.value);
+                    this_1.cells = this_1.cells.filter(function (cell) { return cell.cellId != element.getComponent(Cell_1.default).cellId; });
                     element.destroy();
-                    for (var i = 0; i < this.matrix.length; i++) {
-                        var element1 = this.matrix[i][cell.matrix.x];
+                    for (var i = 0; i < this_1.matrix.length; i++) {
+                        var element1 = this_1.matrix[i][cell.matrix.x].node;
                         if (cc.isValid(element1) && element1.getComponent(Cell_1.default).matrix.y > cell.matrix.y) {
-                            element1.getComponent(Cell_1.default).matrix.y -= 1;
-                            element1.getComponent(Cell_1.default).updatePos();
+                            var mt = element1.getComponent(Cell_1.default).matrix.clone();
+                            var mx = mt.x;
+                            var my = mt.y;
+                            cc.log("\u5237\u65B0cell, id: " + element1.getComponent(Cell_1.default).cellId + " \u4E4B\u524D\u4E3A\uFF1Amatrix: {x: " + mx + ", y: " + my + "}");
+                            element1.getComponent(Cell_1.default).matrix = cc.v2(element1.getComponent(Cell_1.default).matrix.x, element1.getComponent(Cell_1.default).matrix.y - 1);
+                            mt = element1.getComponent(Cell_1.default).matrix.clone();
+                            mx = mt.x;
+                            my = mt.y;
+                            cc.log("\u5237\u65B0cell, id: " + element1.getComponent(Cell_1.default).cellId + " \u4E4B\u540E\u4E3A\uFF1Amatrix: {x: " + mx + ", y: " + my + "}");
+                            element1.getComponent(Cell_1.default).updatePos(true);
                         }
                     }
+                    this_1.updateMatrix();
                 }
+            };
+            var this_1 = this;
+            for (var index = 0; index < this.touchNodeList.length; index++) {
+                _loop_1(index);
             }
         }
         this.touchSum = 0;

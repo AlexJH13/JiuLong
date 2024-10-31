@@ -11,6 +11,10 @@ import { Config } from "./Config";
 
 const {ccclass, property} = cc._decorator;
 
+type MatrixCell = {
+    node: cc.Node,
+}
+
 @ccclass
 export default class Game extends cc.Component {
 
@@ -27,7 +31,9 @@ export default class Game extends cc.Component {
     sumCell: Cell = null;
 
     // 5*7 的二维数组
-    matrix: cc.Node[][]  = [];
+    // matrix: cc.Node[][]  = [];
+
+    matrix: MatrixCell[][] = [];
 
     touchSum: number = 0;
     showSum: number = 0;
@@ -36,6 +42,8 @@ export default class Game extends cc.Component {
     lastTouchCell: Cell = null;
 
     touchNodeList: cc.Node[] = [];
+
+    cells: Cell[] = [];
 
 
     // LIFE-CYCLE CALLBACKS:
@@ -74,7 +82,8 @@ export default class Game extends cc.Component {
                 cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
                 node.parent = this.mainNode;
                 cell.updatePos();
-                rowArray.push(node);
+                this.cells.push(cell);
+                rowArray.push({node: node});
             }
             this.matrix.push(rowArray);
         }
@@ -120,14 +129,13 @@ export default class Game extends cc.Component {
     }
 
     private touchStart(event: cc.Event.EventTouch): void {
-        for (let row = 0; row < Config.MAX_ROW; row++) {
-            for (let col = 0; col < Config.MAX_COL; col++) {
-                let cell = this.matrix[row][col];
-                if(cell.getBoundingBoxToWorld().contains(event.getLocation())) {
-                    this.touchEnable = true;
-                    this.addTouchCell(cell.getComponent(Cell));
-                    return;
-                }
+        for (let index = 0; index < this.cells.length; index++) {
+            const element = this.cells[index];
+            if(element.node.getBoundingBoxToWorld().contains(event.getLocation())) {
+                this.touchEnable = true;
+                cc.log(element);
+                this.addTouchCell(element);
+                return;
             }
         }
     }
@@ -140,7 +148,10 @@ export default class Game extends cc.Component {
                         if (row < 0 || row >= Config.MAX_ROW || col < 0 || col >= Config.MAX_COL) {
                             continue;
                         }
-                        let cellNode = this.matrix[row][col];
+                        let cellNode = this.matrix[row][col].node;
+                        if (!cc.isValid(cellNode)) {
+                            return;
+                        }
                         let cell = cellNode.getComponent(Cell);
                         if(cellNode.getBoundingBoxToWorld().contains(event.getLocation())) {
                             if (cc.isValid(this.lastTouchCell.preTouchCell)) {
@@ -149,16 +160,23 @@ export default class Game extends cc.Component {
                                     return;
                                 }
                             }
-
                             if (cell.touched || cell.value > this.showSum) {
                                 continue;
                             }
-                            
                             this.addTouchCell(cell);
                             return;
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private updateMatrix(): void {
+        for (let index = 0; index < this.cells.length; index++) {
+            const element = this.cells[index];
+            if (cc.isValid(element)) {
+                this.matrix[element.matrix.y][element.matrix.x].node = element.node;
             }
         }
     }
@@ -175,16 +193,31 @@ export default class Game extends cc.Component {
                     this.lastTouchCell.value = this.showSum;
                     this.lastTouchCell.touched = false;
                     this.lastTouchCell.preTouchCell = null;
+                // }
                 } else {
+                    cc.log(`消除cell, id: ${cell.cellId} matrix: {x: ${cell.matrix.x}, y: ${cell.matrix.y}} value: ${cell.value}`)
+                    this.cells = this.cells.filter(cell=> cell.cellId != element.getComponent(Cell).cellId);
                     element.destroy();
                     for (let i = 0; i < this.matrix.length; i++) {
-                        const element1 = this.matrix[i][cell.matrix.x];
+                        const element1 = this.matrix[i][cell.matrix.x].node;
                         if (cc.isValid(element1) && element1.getComponent(Cell).matrix.y > cell.matrix.y) {
-                            element1.getComponent(Cell).matrix.y -= 1; 
-                            element1.getComponent(Cell).updatePos();
+                            let mt = element1.getComponent(Cell).matrix.clone();
+                            let mx = mt.x;
+                            let my = mt.y;
+                            cc.log(`刷新cell, id: ${element1.getComponent(Cell).cellId} 之前为：matrix: {x: ${mx}, y: ${my}}`)
+                            element1.getComponent(Cell).matrix = cc.v2(element1.getComponent(Cell).matrix.x, element1.getComponent(Cell).matrix.y - 1);
+                            mt = element1.getComponent(Cell).matrix.clone();
+                            mx = mt.x;
+                            my = mt.y;
+                            cc.log(`刷新cell, id: ${element1.getComponent(Cell).cellId} 之后为：matrix: {x: ${mx}, y: ${my}}`)
+                            element1.getComponent(Cell).updatePos(true);
                         }
                     }
+                    this.updateMatrix();
                 }
+
+               
+               
             }
         }
         this.touchSum = 0;
