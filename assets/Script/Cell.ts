@@ -45,6 +45,13 @@ export default class Cell extends cc.Component {
         32: cc.color().fromHEX('#63c7ff'),
         64: cc.color().fromHEX('#feb178'),
         128: cc.color().fromHEX('#598bdb'),
+
+        256: cc.color().fromHEX('#ff8c00'),   // 深橙色
+        512: cc.color().fromHEX('#ff4500'),   // 橙红色
+        // 1024: cc.color().fromHEX('#b22222'),  // 火砖色
+        // 2048: cc.color().fromHEX('#8a2be2'),  // 蓝紫色
+        1024: cc.color().fromHEX('#cd5c5c'),  // 印度红（替代）
+        2048: cc.color().fromHEX('#7b68ee'),  // 中蓝紫色（替代）
     }
 
 
@@ -147,13 +154,13 @@ export default class Cell extends cc.Component {
     public set value(v : number) {
         if (this.config[v]) {
             this._value = v;
-            this.text.string = v.toString();
+            this.text.string = this.formatNumber(v);
             this.node.color = this.config[v];
         } else {
-            v = 128;
+            // v = 128;
             this._value = v;
-            this.text.string = v.toString();
-            this.node.color = this.config[v];
+            this.text.string = this.formatNumber(v);
+            this.node.color = this.config[2048];
         }
     }
     
@@ -189,6 +196,18 @@ export default class Cell extends cc.Component {
         if (this._graphics) {
             this._graphics.clear();
             this._graphics.node.destroy();
+        }
+    }
+
+    private formatNumber(num: number): string {
+        if (num < 1000) {
+            return num.toString(); // 小于 1000 的直接返回字符串
+        } else if (num < 1_000_000) {
+            return `${(num / 1000).toFixed(1)}k`; // 千
+        } else if (num < 1_000_000_000) {
+            return `${(num / 1_000_000).toFixed(1)}m`; // 百万
+        } else {
+            return `${(num / 1_000_000_000).toFixed(1)}b`; // 十亿
         }
     }
 

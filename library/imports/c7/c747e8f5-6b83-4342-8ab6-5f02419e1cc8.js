@@ -41,6 +41,7 @@ var Game = /** @class */ (function (_super) {
         _this.mainNode = null;
         _this.graphicsNode = null;
         _this.sumCell = null;
+        _this.todayScoreLabel = null;
         // 5*7 的二维数组
         // matrix: cc.Node[][]  = [];
         _this.matrix = [];
@@ -49,6 +50,7 @@ var Game = /** @class */ (function (_super) {
         _this.touchEnable = false;
         _this.lastTouchCell = null;
         _this.touchNodeList = [];
+        _this.score = null;
         _this.cells = [];
         return _this;
         // update (dt) {}
@@ -63,6 +65,13 @@ var Game = /** @class */ (function (_super) {
     Game.prototype.start = function () {
         this.createGame();
     };
+    Game.prototype.addScore = function (score) {
+        this.setScore(this.score + score);
+    };
+    Game.prototype.setScore = function (score) {
+        this.score = score;
+        this.todayScoreLabel.string = this.score.toString();
+    };
     Game.prototype.drawLine = function (pos1, pos2) {
         var node = new cc.Node();
         var graphics = node.addComponent(cc.Graphics);
@@ -75,18 +84,15 @@ var Game = /** @class */ (function (_super) {
         return graphics;
     };
     Game.prototype.createGame = function () {
+        this.setScore(0);
         for (var row = 0; row < Config_1.Config.MAX_ROW; row++) {
             var rowArray = [];
             for (var col = 0; col < Config_1.Config.MAX_COL; col++) {
-                // let node = cc.instantiate(this.cellPrefab);
-                // let cell = node.getComponent(Cell);
-                // cell.cellId = XY.generateId();
-                // cell.matrix = cc.v2(col, row);
-                // cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
-                var node = this.createRandomCell();
+                var node = this.createRandomCell(7);
                 var cell = node.getComponent(Cell_1.default);
                 cell.matrix = cc.v2(col, row);
                 node.parent = this.mainNode;
+                // cell.value = 2048;
                 cell.updatePos();
                 this.cells.push(cell);
                 rowArray.push({ node: node });
@@ -94,11 +100,12 @@ var Game = /** @class */ (function (_super) {
             this.matrix.push(rowArray);
         }
     };
-    Game.prototype.createRandomCell = function () {
+    Game.prototype.createRandomCell = function (maxExponent) {
         var node = cc.instantiate(this.cellPrefab);
         var cell = node.getComponent(Cell_1.default);
         cell.cellId = XYUtils_1.XY.generateId();
-        cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
+        cell.value = Math.pow(2, this.getRandomIntInclusive(1, maxExponent));
+        // cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
         return node;
     };
     Game.prototype.getRandomIntInclusive = function (min, max) {
@@ -111,7 +118,7 @@ var Game = /** @class */ (function (_super) {
         this.touchNodeList.push(cell.node);
         cell.touched = true;
         this.touchSum += cell.value;
-        this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+        this.showSum = this.getShowSum(this.touchSum);
         this.sumCell.value = this.showSum;
         this.sumCell.node.active = true;
         if (cc.isValid(this.lastTouchCell)) {
@@ -130,9 +137,14 @@ var Game = /** @class */ (function (_super) {
             this.lastTouchCell = cell.preTouchCell;
             cell.preTouchCell = null;
             this.touchSum -= cell.value;
-            this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+            this.showSum = this.getShowSum(this.touchSum);
             this.sumCell.value = this.showSum;
         }
+    };
+    Game.prototype.getShowSum = function (num) {
+        // return Math.pow(2, Math.ceil(Math.log2(num)));
+        // cc.log(`num = ${num}, Math.log2(num) = ${Math.log2(num)}`)
+        return Math.pow(2, Math.floor(Math.log2(num)));
     };
     Game.prototype.touchStart = function (event) {
         for (var index = 0; index < this.cells.length; index++) {
@@ -165,15 +177,28 @@ var Game = /** @class */ (function (_super) {
                                     return;
                                 }
                             }
-                            if (cell.touched || cell.value > this.showSum) {
-                                continue;
+                            // if (cell.touched || cell.value > this.showSum) {
+                            //     continue;
+                            // }
+                            if (this.checkLinkCell(cell)) {
+                                this.addTouchCell(cell);
+                                return;
                             }
-                            this.addTouchCell(cell);
-                            return;
                         }
                     }
                 }
             }
+        }
+    };
+    Game.prototype.checkLinkCell = function (cell) {
+        if (cell.touched) {
+            return false;
+        }
+        if (cc.isValid(this.lastTouchCell) && this.lastTouchCell.value === cell.value) {
+            return true;
+        }
+        if (cell.value === this.showSum) {
+            return true;
         }
     };
     Game.prototype.updateMatrix = function () {
@@ -200,6 +225,7 @@ var Game = /** @class */ (function (_super) {
                 var element = this_1.touchNodeList[index];
                 var cell = element.getComponent(Cell_1.default);
                 if (cell.cellId === this_1.lastTouchCell.cellId) {
+                    this_1.addScore(this_1.showSum);
                     this_1.lastTouchCell.value = this_1.showSum;
                     this_1.lastTouchCell.touched = false;
                     this_1.lastTouchCell.preTouchCell = null;
@@ -209,7 +235,7 @@ var Game = /** @class */ (function (_super) {
                     var elementy = element.getComponent(Cell_1.default).matrix.y;
                     var elementx = element.getComponent(Cell_1.default).matrix.x;
                     element.destroy();
-                    var newNode = this_1.createRandomCell();
+                    var newNode = this_1.createRandomCell(7);
                     var newCell = newNode.getComponent(Cell_1.default);
                     newCell.matrix = cc.v2(elementx, Config_1.Config.MAX_ROW);
                     newCell.updatePos();
@@ -220,13 +246,7 @@ var Game = /** @class */ (function (_super) {
                     for (var i = elementy + 1; i < this_1.matrix.length; i++) {
                         var element1 = this_1.matrix[i][elementx].node;
                         if (cc.isValid(element1) && element1.getComponent(Cell_1.default).matrix.y > cell.matrix.y) {
-                            // let mt = element1.getComponent(Cell).matrix.clone();
-                            // let mx = mt.x;
-                            // let my = mt.y;
                             element1.getComponent(Cell_1.default).matrix = cc.v2(element1.getComponent(Cell_1.default).matrix.x, element1.getComponent(Cell_1.default).matrix.y - 1);
-                            // mt = element1.getComponent(Cell).matrix.clone();
-                            // mx = mt.x;
-                            // my = mt.y;
                             element1.getComponent(Cell_1.default).updatePos(true);
                         }
                     }
@@ -257,6 +277,9 @@ var Game = /** @class */ (function (_super) {
     __decorate([
         property(Cell_1.default)
     ], Game.prototype, "sumCell", void 0);
+    __decorate([
+        property(cc.Label)
+    ], Game.prototype, "todayScoreLabel", void 0);
     Game = __decorate([
         ccclass
     ], Game);

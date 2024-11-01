@@ -54,6 +54,12 @@ var Cell = /** @class */ (function (_super) {
             32: cc.color().fromHEX('#63c7ff'),
             64: cc.color().fromHEX('#feb178'),
             128: cc.color().fromHEX('#598bdb'),
+            256: cc.color().fromHEX('#ff8c00'),
+            512: cc.color().fromHEX('#ff4500'),
+            // 1024: cc.color().fromHEX('#b22222'),  // 火砖色
+            // 2048: cc.color().fromHEX('#8a2be2'),  // 蓝紫色
+            1024: cc.color().fromHEX('#cd5c5c'),
+            2048: cc.color().fromHEX('#7b68ee'),
         };
         return _this;
         // update (dt) {}
@@ -167,14 +173,14 @@ var Cell = /** @class */ (function (_super) {
         set: function (v) {
             if (this.config[v]) {
                 this._value = v;
-                this.text.string = v.toString();
+                this.text.string = this.formatNumber(v);
                 this.node.color = this.config[v];
             }
             else {
-                v = 128;
+                // v = 128;
                 this._value = v;
-                this.text.string = v.toString();
-                this.node.color = this.config[v];
+                this.text.string = this.formatNumber(v);
+                this.node.color = this.config[2048];
             }
         },
         enumerable: false,
@@ -207,6 +213,20 @@ var Cell = /** @class */ (function (_super) {
         if (this._graphics) {
             this._graphics.clear();
             this._graphics.node.destroy();
+        }
+    };
+    Cell.prototype.formatNumber = function (num) {
+        if (num < 1000) {
+            return num.toString(); // 小于 1000 的直接返回字符串
+        }
+        else if (num < 1000000) {
+            return (num / 1000).toFixed(1) + "k"; // 千
+        }
+        else if (num < 1000000000) {
+            return (num / 1000000).toFixed(1) + "m"; // 百万
+        }
+        else {
+            return (num / 1000000000).toFixed(1) + "b"; // 十亿
         }
     };
     __decorate([

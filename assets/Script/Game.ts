@@ -30,6 +30,9 @@ export default class Game extends cc.Component {
     @property(Cell)
     sumCell: Cell = null;
 
+    @property(cc.Label)
+    todayScoreLabel: cc.Label = null;
+
     // 5*7 的二维数组
     // matrix: cc.Node[][]  = [];
 
@@ -42,6 +45,8 @@ export default class Game extends cc.Component {
     lastTouchCell: Cell = null;
 
     touchNodeList: cc.Node[] = [];
+
+    score: number = null;
 
     cells: Cell[] = [];
 
@@ -59,6 +64,15 @@ export default class Game extends cc.Component {
         this.createGame();
     }
 
+    private addScore(score: number): void {
+        this.setScore(this.score + score);
+    }
+
+    private setScore(score: number): void {
+        this.score = score;
+        this.todayScoreLabel.string = this.score.toString();
+    }
+
     private drawLine(pos1: cc.Vec2, pos2: cc.Vec2): cc.Graphics {
         let node = new cc.Node();
         let graphics = node.addComponent(cc.Graphics);
@@ -72,18 +86,15 @@ export default class Game extends cc.Component {
     }
 
     private createGame(): void {
+        this.setScore(0);
         for (let row = 0; row < Config.MAX_ROW; row++) {
             let rowArray = [];
             for (let col = 0; col < Config.MAX_COL; col++) {
-                // let node = cc.instantiate(this.cellPrefab);
-                // let cell = node.getComponent(Cell);
-                // cell.cellId = XY.generateId();
-                // cell.matrix = cc.v2(col, row);
-                // cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
-                let node = this.createRandomCell();
+                let node = this.createRandomCell(7);
                 let cell = node.getComponent(Cell);
                 cell.matrix = cc.v2(col, row);
                 node.parent = this.mainNode;
+                // cell.value = 2048;
                 cell.updatePos();
                 this.cells.push(cell);
                 rowArray.push({node: node});
@@ -92,11 +103,12 @@ export default class Game extends cc.Component {
         }
     }
 
-    private createRandomCell(): cc.Node {
+    private createRandomCell(maxExponent: number): cc.Node {
         let node = cc.instantiate(this.cellPrefab);
         let cell = node.getComponent(Cell);
         cell.cellId = XY.generateId();
-        cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
+        cell.value = Math.pow(2, this.getRandomIntInclusive(1, maxExponent));
+        // cell.value = Math.pow(2, this.getRandomIntInclusive(1, 7));
         return node;
     }
 
@@ -111,7 +123,7 @@ export default class Game extends cc.Component {
         this.touchNodeList.push(cell.node);
         cell.touched = true;
         this.touchSum += cell.value;
-        this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+        this.showSum = this.getShowSum(this.touchSum);
         this.sumCell.value = this.showSum;
         this.sumCell.node.active = true;
         if (cc.isValid(this.lastTouchCell)) {
@@ -133,10 +145,16 @@ export default class Game extends cc.Component {
             cell.preTouchCell = null;
 
             this.touchSum  -= cell.value;
-            this.showSum = Math.pow(2, Math.ceil(Math.log2(this.touchSum)));
+            this.showSum = this.getShowSum(this.touchSum);
             this.sumCell.value = this.showSum;
             
         }
+    }
+    
+    private getShowSum(num: number): number {
+        // return Math.pow(2, Math.ceil(Math.log2(num)));
+        // cc.log(`num = ${num}, Math.log2(num) = ${Math.log2(num)}`)
+        return Math.pow(2, Math.floor(Math.log2(num)));
     }
 
     private touchStart(event: cc.Event.EventTouch): void {
@@ -171,15 +189,31 @@ export default class Game extends cc.Component {
                                     return;
                                 }
                             }
-                            if (cell.touched || cell.value > this.showSum) {
-                                continue;
+                            // if (cell.touched || cell.value > this.showSum) {
+                            //     continue;
+                            // }
+                            if (this.checkLinkCell(cell)) {
+                                this.addTouchCell(cell);
+                                return;
                             }
-                            this.addTouchCell(cell);
-                            return;
                         }
                     }
                 }
             }
+        }
+    }
+
+    private checkLinkCell(cell: Cell): boolean {
+        if (cell.touched) {
+            return false;
+        }
+
+        if (cc.isValid(this.lastTouchCell) && this.lastTouchCell.value === cell.value) {
+            return true;   
+        }
+
+        if (cell.value === this.showSum) {
+            return true;
         }
     }
 
@@ -208,6 +242,7 @@ export default class Game extends cc.Component {
                 const element = this.touchNodeList[index];
                 const cell = element.getComponent(Cell);
                 if (cell.cellId === this.lastTouchCell.cellId) {
+                    this.addScore(this.showSum);
                     this.lastTouchCell.value = this.showSum;
                     this.lastTouchCell.touched = false;
                     this.lastTouchCell.preTouchCell = null;
@@ -217,7 +252,7 @@ export default class Game extends cc.Component {
                     let elementx = element.getComponent(Cell).matrix.x;
                     element.destroy();
 
-                    let newNode = this.createRandomCell();
+                    let newNode = this.createRandomCell(7);
                     let newCell = newNode.getComponent(Cell);
                     newCell.matrix = cc.v2(elementx, Config.MAX_ROW);
                     newCell.updatePos();
@@ -229,13 +264,7 @@ export default class Game extends cc.Component {
                     for (let i = elementy + 1; i < this.matrix.length; i++) {
                         const element1 = this.matrix[i][elementx].node;
                         if (cc.isValid(element1) && element1.getComponent(Cell).matrix.y > cell.matrix.y) {
-                            // let mt = element1.getComponent(Cell).matrix.clone();
-                            // let mx = mt.x;
-                            // let my = mt.y;
                             element1.getComponent(Cell).matrix = cc.v2(element1.getComponent(Cell).matrix.x, element1.getComponent(Cell).matrix.y - 1);
-                            // mt = element1.getComponent(Cell).matrix.clone();
-                            // mx = mt.x;
-                            // my = mt.y;
                             element1.getComponent(Cell).updatePos(true);
                         }
                     }
