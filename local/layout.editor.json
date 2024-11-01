@@ -112,6 +112,12 @@
       "y": 164,
       "width": 584,
       "height": 554
+    },
+    "builder": {
+      "x": 485,
+      "y": 66,
+      "width": 500,
+      "height": 728
     }
   },
   "panelLabelWidth": {}
