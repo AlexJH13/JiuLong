@@ -42,6 +42,7 @@ var Game = /** @class */ (function (_super) {
         _this.graphicsNode = null;
         _this.sumCell = null;
         _this.todayScoreLabel = null;
+        _this.mask = null;
         // 5*7 的二维数组
         // matrix: cc.Node[][]  = [];
         _this.matrix = [];
@@ -61,6 +62,7 @@ var Game = /** @class */ (function (_super) {
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.touchMoved.bind(this), this);
         this.node.on(cc.Node.EventType.TOUCH_END, this.touchEnded.bind(this), this);
         this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.touchEnded.bind(this), this);
+        this.mask.setContentSize(Config_1.Config.MAX_COL * 117 + (Config_1.Config.MAX_COL - 1) * Config_1.Config.CELL_SPACING, Config_1.Config.MAX_ROW * 117 + (Config_1.Config.MAX_ROW - 1) * Config_1.Config.CELL_SPACING);
     };
     Game.prototype.start = function () {
         this.createGame();
@@ -221,6 +223,7 @@ var Game = /** @class */ (function (_super) {
             this.lastTouchCell.preTouchCell = null;
         }
         else {
+            var cellMaxY = {};
             var _loop_1 = function (index) {
                 var element = this_1.touchNodeList[index];
                 var cell = element.getComponent(Cell_1.default);
@@ -237,10 +240,17 @@ var Game = /** @class */ (function (_super) {
                     element.destroy();
                     var newNode = this_1.createRandomCell(7);
                     var newCell = newNode.getComponent(Cell_1.default);
-                    newCell.matrix = cc.v2(elementx, Config_1.Config.MAX_ROW);
+                    if (cellMaxY[elementx]) {
+                        cellMaxY[elementx] += 1;
+                    }
+                    else {
+                        cellMaxY[elementx] = Config_1.Config.MAX_ROW;
+                    }
+                    newCell.matrix = cc.v2(elementx, cellMaxY[elementx]);
                     newCell.updatePos();
                     newCell.matrix = cc.v2(elementx, Config_1.Config.MAX_ROW - 1);
                     newCell.updatePos(true);
+                    // newCell.updatePos();
                     newNode.parent = this_1.mainNode;
                     this_1.cells.push(newCell);
                     for (var i = elementy + 1; i < this_1.matrix.length; i++) {
@@ -280,6 +290,9 @@ var Game = /** @class */ (function (_super) {
     __decorate([
         property(cc.Label)
     ], Game.prototype, "todayScoreLabel", void 0);
+    __decorate([
+        property(cc.Node)
+    ], Game.prototype, "mask", void 0);
     Game = __decorate([
         ccclass
     ], Game);

@@ -33,6 +33,9 @@ export default class Game extends cc.Component {
     @property(cc.Label)
     todayScoreLabel: cc.Label = null;
 
+    @property(cc.Node)
+    mask: cc.Node = null;
+
     // 5*7 的二维数组
     // matrix: cc.Node[][]  = [];
 
@@ -58,6 +61,8 @@ export default class Game extends cc.Component {
         this.node.on(cc.Node.EventType.TOUCH_MOVE, this.touchMoved.bind(this), this);
         this.node.on(cc.Node.EventType.TOUCH_END, this.touchEnded.bind(this), this);
         this.node.on(cc.Node.EventType.TOUCH_CANCEL, this.touchEnded.bind(this), this);
+        this.mask.setContentSize(Config.MAX_COL * 117 + (Config.MAX_COL - 1) * Config.CELL_SPACING, 
+                                Config.MAX_ROW * 117 + (Config.MAX_ROW - 1) * Config.CELL_SPACING)
     }
 
     start () {
@@ -238,6 +243,8 @@ export default class Game extends cc.Component {
             this.lastTouchCell.touched = false;
             this.lastTouchCell.preTouchCell = null;
         } else {
+
+            let cellMaxY = {};
             for (let index = 0; index < this.touchNodeList.length; index++) {
                 const element = this.touchNodeList[index];
                 const cell = element.getComponent(Cell);
@@ -254,10 +261,17 @@ export default class Game extends cc.Component {
 
                     let newNode = this.createRandomCell(7);
                     let newCell = newNode.getComponent(Cell);
-                    newCell.matrix = cc.v2(elementx, Config.MAX_ROW);
+                    if (cellMaxY[elementx]) {
+                        cellMaxY[elementx] += 1;
+                    } else {
+                        cellMaxY[elementx] = Config.MAX_ROW;
+                    }
+        
+                    newCell.matrix = cc.v2(elementx, cellMaxY[elementx]);
                     newCell.updatePos();
                     newCell.matrix = cc.v2(elementx, Config.MAX_ROW - 1);
                     newCell.updatePos(true);
+                    // newCell.updatePos();
                     newNode.parent = this.mainNode;
                     this.cells.push(newCell);
 
