@@ -67,7 +67,7 @@ export default class Cell extends cc.Component {
         this._touched = flag;
         if (this._touched) {
             cc.tween(this.node)
-            .to(0.1, {scale: 1.07}, {easing: 'cubicOut'})
+            .to(0.1, {scale: 1.09}, {easing: 'cubicOut'})
             .start();
         } else {
             this.graphics = null;
