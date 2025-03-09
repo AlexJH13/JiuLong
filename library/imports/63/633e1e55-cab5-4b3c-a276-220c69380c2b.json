@@ -539,7 +539,7 @@
         1,
         1,
         1,
-        1
+        0
       ]
     },
     "_eulerAngles": {
@@ -770,6 +770,9 @@
       "__id__": 2
     },
     "_enabled": true,
+    "cell": {
+      "__uuid__": "a23235d1-15db-4b95-8439-a2e005bfff91"
+    },
     "_id": "73h76A8Q5Bc4aG+QL1I72W"
   }
 ]
