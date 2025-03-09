@@ -28,17 +28,22 @@ export default class MainMenu extends cc.Component {
         transitionNode.setContentSize(cc.winSize);
         transitionNode.position = cc.v3(cc.winSize.width / 2, cc.winSize.height / 2);
         transitionNode.zIndex = 9999;
+        
+        // 先添加到场景，再设为常驻节点
         cc.director.getScene().addChild(transitionNode);
         
-        // 创建六边形图案效果
-        const hexagonCount = 30; // 减少六边形数量
+        // 在转场节点上保存六边形数组的引用，以便在场景切换后仍能访问
         const hexagons: cc.Node[] = [];
+        transitionNode['hexagons'] = hexagons;
+        
+        // 创建六边形图案效果
+        const hexagonCount = 30;
         
         // 创建多个六边形
         for (let i = 0; i < hexagonCount; i++) {
             const hexagon = this.createHexagon(this.cell);
             hexagon.scale = 0;
-            hexagon.opacity = 180; // 设置透明度，让背景可以透过
+            hexagon.opacity = 180;
             hexagon.position = cc.v3(
                 (Math.random() - 0.5) * cc.winSize.width * 0.8,
                 (Math.random() - 0.5) * cc.winSize.height * 0.8
@@ -47,55 +52,40 @@ export default class MainMenu extends cc.Component {
             transitionNode.addChild(hexagon);
             hexagons.push(hexagon);
         }
+
         
         // 创建背景
         const blackBg = new cc.Node('TransitionBackground');
         const bgSprite = blackBg.addComponent(cc.Sprite);
         bgSprite.spriteFrame = this.cell;
         bgSprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        // 使用深蓝色而不是黑色，更接近主色调
-        blackBg.color = new cc.Color(25, 40, 60); // 深蓝色背景
+        blackBg.color = new cc.Color(25, 40, 60);
         blackBg.setContentSize(cc.winSize.width * 1.5, cc.winSize.height * 1.5);
         blackBg.opacity = 0;
-        transitionNode.addChild(blackBg, -1); // 确保背景在最底层
+        transitionNode.addChild(blackBg, -1);
+
+        // 在转场节点上保存背景的引用
+        transitionNode['background'] = blackBg;
         
         // 播放动画序列
         // 1. 六边形放大动画
         let finishedCount = 0;
         hexagons.forEach((hexagon, index) => {
-            const delay = index * 0.02; // 错开时间
+            const delay = index * 0.02;
             cc.tween(hexagon)
                 .delay(delay)
-                .to(0.5, { scale: 3 + Math.random() * 2 }, { easing: 'backOut' }) // 减小最大缩放比例
+                .to(0.5, { scale: 3 + Math.random() * 2 }, { easing: 'backOut' })
                 .call(() => {
                     finishedCount++;
                     if (finishedCount === hexagonCount) {
-                        // 2. 黑色背景淡入
+                        // 2. 背景淡入
                         cc.tween(blackBg)
                             .to(0.8, { opacity: 255 })
                             .call(() => {
-                                // 3. 六边形旋转并缩小消失
-                                hexagons.forEach((hex, i) => {
-                                    cc.tween(hex)
-                                        .delay(i * 0.01)
-                                        .parallel(
-                                            cc.tween().to(0.5, { scale: 0 }),
-                                            cc.tween().by(0.5, { angle: 180 + Math.random() * 180 })
-                                        )
-                                        .start();
-                                });
-                                
-                                // 4. 完成转场
-                                cc.tween(blackBg)
-                                    .delay(0.6)
-                                    .call(() => {
-                                        // 动画完成，销毁节点并调用回调
-                                        transitionNode.destroy();
-                                        if (transitionComplete) {
-                                            transitionComplete();
-                                        }
-                                    })
-                                    .start();
+                                // 在背景完全不透明时开始加载新场景
+                                if (transitionComplete) {
+                                    transitionComplete();
+                                }
                             })
                             .start();
                     }
@@ -140,7 +130,7 @@ export default class MainMenu extends cc.Component {
                 const angle = i * angleStep;
                 graphics.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
             }
-            graphics.close();
+            // graphics.close();
             graphics.stroke();
             graphics.fill();
         } else {
@@ -158,7 +148,8 @@ export default class MainMenu extends cc.Component {
             graphics.fill();
             
             // 添加装饰图案
-            const decoration = node.addComponent(cc.Graphics);
+            // const decoration = node.addComponent(cc.Graphics);
+            let decoration = graphics;
             decoration.fillColor = new cc.Color(80, 120, 160, 150);
             
             // 绘制内部装饰
@@ -188,9 +179,44 @@ export default class MainMenu extends cc.Component {
 
     onClick(event: cc.Event.EventTouch, data: string): void{
         if (data === 'start') {
-            // 播放转场动画，然后切换场景
+            // 播放转场动画，在动画中间点加载新场景
             this.showTransition(() => {
-                cc.director.loadScene('GameScene');
+                this.node.active = false;
+                const transitionNode = cc.director.getScene().getChildByName('TransitionEffect');
+                if (transitionNode) {
+               
+                    transitionNode.setContentSize(cc.winSize);
+                    transitionNode.scale = 1;
+                    transitionNode.position = cc.v3(cc.winSize.width / 2, cc.winSize.height / 2);
+                    
+                    // 获取保存的六边形和背景引用
+                    const hexagons = transitionNode['hexagons'] || [];
+                    const blackBg = transitionNode['background'];
+                    
+                    // 3. 六边形旋转并缩小消失
+                    hexagons.forEach((hex, i) => {
+                        cc.tween(hex)
+                            .delay(i * 0.01)
+                            .parallel(
+                                cc.tween().to(0.5, { scale: 0 }),
+                                cc.tween().by(0.5, { angle: 180 + Math.random() * 180 })
+                            )
+                            .start();
+                    });
+                    
+                    // 4. 完成转场
+                    if (blackBg) {
+                        cc.tween(blackBg)
+                            .delay(0.6)
+                            .to(0.8, { opacity: 0 })
+                            .call(() => {
+                                // 动画完成，移除常驻节点并销毁
+                                cc.game.removePersistRootNode(transitionNode);
+                                transitionNode.destroy();
+                            })
+                            .start();
+                    }
+                }
             });
         }
     }

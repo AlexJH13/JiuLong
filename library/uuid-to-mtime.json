@@ -25,8 +25,8 @@
     "relativePath": "Texture/HelloWorld.png"
   },
   "9def7054-c9ad-4df7-850b-4f2711793fa9": {
-    "asset": 1731254501257,
-    "meta": 1731254501260,
+    "asset": 1741524845294,
+    "meta": 1741524845297,
     "relativePath": "Scene/GameScene.fire"
   },
   "260c4812-e28a-4ea2-adf4-dc12502d3d88": {
@@ -599,14 +599,9 @@
     "meta": 1733644508171,
     "relativePath": "Script/Cell.ts"
   },
-  "633e1e55-cab5-4b3c-a276-220c69380c2b": {
-    "asset": 1741521165651,
-    "meta": 1741521165652,
-    "relativePath": "Scene/MainScene.fire"
-  },
   "8c44b3b3-b56b-4511-a638-338f2bc3f7b0": {
-    "asset": 1741521279420,
-    "meta": 1741521280154,
+    "asset": 1741524836357,
+    "meta": 1741524837904,
     "relativePath": "Script/MainMenu.ts"
   }
 }
