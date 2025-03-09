@@ -210,8 +210,6 @@ export default class MainMenu extends cc.Component {
                             .delay(0.6)
                             .to(0.8, { opacity: 0 })
                             .call(() => {
-                                // 动画完成，移除常驻节点并销毁
-                                cc.game.removePersistRootNode(transitionNode);
                                 transitionNode.destroy();
                             })
                             .start();
