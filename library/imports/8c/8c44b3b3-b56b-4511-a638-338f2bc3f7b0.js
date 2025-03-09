@@ -49,29 +49,27 @@ var MainMenu = /** @class */ (function (_super) {
         transitionNode.zIndex = 9999;
         cc.director.getScene().addChild(transitionNode);
         // 创建六边形图案效果
-        var hexagonCount = 50; // 六边形数量
+        var hexagonCount = 30; // 减少六边形数量
         var hexagons = [];
         // 创建多个六边形
         for (var i = 0; i < hexagonCount; i++) {
             var hexagon = this.createHexagon(this.cell);
             hexagon.scale = 0;
+            hexagon.opacity = 180; // 设置透明度，让背景可以透过
             hexagon.position = cc.v3((Math.random() - 0.5) * cc.winSize.width * 0.8, (Math.random() - 0.5) * cc.winSize.height * 0.8);
-            hexagon.color = new cc.Color(Math.floor(Math.random() * 100) + 155, // 较亮的红色
-            Math.floor(Math.random() * 50), // 较暗的绿色
-            Math.floor(Math.random() * 50) // 较暗的蓝色
-            );
             transitionNode.addChild(hexagon);
             hexagons.push(hexagon);
         }
-        // 创建黑色背景
-        var blackBg = new cc.Node('BlackBackground');
+        // 创建背景
+        var blackBg = new cc.Node('TransitionBackground');
         var bgSprite = blackBg.addComponent(cc.Sprite);
         bgSprite.spriteFrame = this.cell;
         bgSprite.sizeMode = cc.Sprite.SizeMode.CUSTOM;
-        blackBg.color = cc.Color.BLACK;
+        // 使用深蓝色而不是黑色，更接近主色调
+        blackBg.color = new cc.Color(25, 40, 60); // 深蓝色背景
         blackBg.setContentSize(cc.winSize.width * 1.5, cc.winSize.height * 1.5);
         blackBg.opacity = 0;
-        transitionNode.addChild(blackBg, -1);
+        transitionNode.addChild(blackBg, -1); // 确保背景在最底层
         // 播放动画序列
         // 1. 六边形放大动画
         var finishedCount = 0;
@@ -79,7 +77,7 @@ var MainMenu = /** @class */ (function (_super) {
             var delay = index * 0.02; // 错开时间
             cc.tween(hexagon)
                 .delay(delay)
-                .to(0.5, { scale: 5 + Math.random() * 3 }, { easing: 'backOut' })
+                .to(0.5, { scale: 3 + Math.random() * 2 }, { easing: 'backOut' }) // 减小最大缩放比例
                 .call(function () {
                 finishedCount++;
                 if (finishedCount === hexagonCount) {
@@ -115,17 +113,68 @@ var MainMenu = /** @class */ (function (_super) {
     // 创建六边形
     MainMenu.prototype.createHexagon = function (spriteFrame) {
         var node = new cc.Node('Hexagon');
-        // const sprite = node.addComponent(cc.Sprite);
-        // sprite.spriteFrame = spriteFrame;
-        // sprite.sizeMode = cc.Sprite.SizeMode.CUSTOM; // 设置为CUSTOM以便正确处理1*1的纹理
         // 设置节点大小
         node.width = 100;
         node.height = 100;
         // 使用Graphics组件绘制六边形
         var graphics = node.addComponent(cc.Graphics);
-        graphics.fillColor = cc.Color.WHITE;
-        // 绘制六边形
-        var radius = 50; // 六边形半径
+        // 创建渐变效果
+        var gradientType = Math.floor(Math.random() * 3);
+        if (gradientType === 0) {
+            // 径向渐变
+            var gradient = graphics.node.addComponent(cc.Graphics);
+            gradient.fillColor = new cc.Color(255, 255, 255, 100);
+            // 绘制三个不同大小的六边形，形成渐变效果
+            this.drawHexagon(gradient, 50, new cc.Color(40, 60, 90, 200));
+            this.drawHexagon(gradient, 40, new cc.Color(60, 90, 120, 180));
+            this.drawHexagon(gradient, 30, new cc.Color(80, 120, 160, 160));
+        }
+        else if (gradientType === 1) {
+            // 单色带边框
+            graphics.lineWidth = 3;
+            graphics.strokeColor = new cc.Color(80, 120, 160);
+            graphics.fillColor = new cc.Color(40, 60, 90, 180);
+            // 绘制六边形
+            var radius = 48; // 稍微小一点，留出边框空间
+            var angleStep = Math.PI / 3;
+            graphics.moveTo(radius * Math.cos(0), radius * Math.sin(0));
+            for (var i = 1; i <= 6; i++) {
+                var angle = i * angleStep;
+                graphics.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
+            }
+            graphics.close();
+            graphics.stroke();
+            graphics.fill();
+        }
+        else {
+            // 双色分割
+            graphics.fillColor = new cc.Color(60, 100, 120);
+            // 绘制六边形
+            var radius = 50;
+            var angleStep = Math.PI / 3;
+            graphics.moveTo(radius * Math.cos(0), radius * Math.sin(0));
+            for (var i = 1; i <= 6; i++) {
+                var angle = i * angleStep;
+                graphics.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
+            }
+            graphics.fill();
+            // 添加装饰图案
+            var decoration = node.addComponent(cc.Graphics);
+            decoration.fillColor = new cc.Color(80, 120, 160, 150);
+            // 绘制内部装饰
+            var innerRadius = 25;
+            decoration.moveTo(innerRadius * Math.cos(0), innerRadius * Math.sin(0));
+            for (var i = 1; i <= 6; i++) {
+                var angle = i * angleStep;
+                decoration.lineTo(innerRadius * Math.cos(angle), innerRadius * Math.sin(angle));
+            }
+            decoration.fill();
+        }
+        return node;
+    };
+    // 辅助方法：绘制六边形
+    MainMenu.prototype.drawHexagon = function (graphics, radius, color) {
+        graphics.fillColor = color;
         var angleStep = Math.PI / 3;
         graphics.moveTo(radius * Math.cos(0), radius * Math.sin(0));
         for (var i = 1; i <= 6; i++) {
@@ -133,7 +182,6 @@ var MainMenu = /** @class */ (function (_super) {
             graphics.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
         }
         graphics.fill();
-        return node;
     };
     MainMenu.prototype.onClick = function (event, data) {
         if (data === 'start') {
